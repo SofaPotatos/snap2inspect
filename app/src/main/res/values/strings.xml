@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Snap2Inspect</string>
+    <string name="menu_present_to">Present to</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="secondary_connected">Connected to:\n%s</string>
+    <string name="secondary_screen">Pattern</string>
+    <string name="measurement">Measure</string>
+    <string name="display_name">This display is: %s</string>
+    <string name="display_color">Background color: #%X</string>
+</resources>
