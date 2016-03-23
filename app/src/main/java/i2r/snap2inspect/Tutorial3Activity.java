@@ -2,64 +2,43 @@ package i2r.snap2inspect;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
-import java.util.ListIterator;
-
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.CvType;
-import org.opencv.core.KeyPoint;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfKeyPoint;
-import org.opencv.features2d.FeatureDetector;
-import org.opencv.features2d.Features2d;
-import org.opencv.imgproc.*;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
+import org.opencv.imgproc.Imgproc;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.Intent;
-import android.hardware.Camera.Size;
 import android.media.MediaRouter;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
 import android.view.Display;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.MotionEvent;
-import android.view.SubMenu;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CompoundButton;
-import android.widget.ImageView;
 import android.widget.Switch;
 import android.widget.Toast;
 
-import i2r.snap2inspect.R;
-
 
 public class Tutorial3Activity extends Activity implements CvCameraViewListener2, OnTouchListener, CompoundButton.OnCheckedChangeListener {
-    private static final String TAG = "OCVSample::Activity";
+    private static final String TAG = "Snap2inspect::Activity";
 
     private i2r.snap2inspect.Tutorial3View mOpenCvCameraView;
-
-    private Mat iRGBa;
-
     private Button mButton;
+    private Switch mSwitch;
     private MediaRouter mMediaRouter;
-
-    // Active Presentation, set to null if no secondary screen is enabled
     private i2r.snap2inspect.SamplePresentation mPresentation;
-
+    private Mat lastFrame;
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
         if (mPresentation != null) {
@@ -113,36 +92,28 @@ public class Tutorial3Activity extends Activity implements CvCameraViewListener2
         setContentView(R.layout.tutorial3_surface_view);
 
         mOpenCvCameraView = (i2r.snap2inspect.Tutorial3View) findViewById(R.id.tutorial3_activity_java_surface_view);
-
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
-
         mOpenCvCameraView.setCvCameraViewListener(this);
-
-        //
-
         // BEGIN_INCLUDE(getMediaRouter)
         // Get the MediaRouter service
         mMediaRouter = (MediaRouter) getSystemService(Context.MEDIA_ROUTER_SERVICE);
-
         mButton = (Button) findViewById(R.id.button1);
         mButton.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-                if(mOpenCvCameraView.isBusy())
-                {
+                if (mOpenCvCameraView.isBusy()) {
                     mButton.setEnabled(false);
-                }
-                else {
+                } else {
                     takeMeasurement();
                 }
             }
         });
 
 
-        Switch s = (Switch) findViewById(R.id.monitored_switch);
-        if (s != null) {
-            s.setOnCheckedChangeListener(this);
+        mSwitch = (Switch) findViewById(R.id.monitored_switch);
+        if (mSwitch != null) {
+            mSwitch.setOnCheckedChangeListener(this);
         }
     }
 
@@ -286,12 +257,11 @@ public class Tutorial3Activity extends Activity implements CvCameraViewListener2
     }
 
     public void onCameraViewStopped() {
-        iRGBa.release();
     }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-        iRGBa = inputFrame.rgba();
-        return iRGBa;
+        lastFrame = inputFrame.rgba();
+        return mOpenCvCameraView.getFrame(inputFrame.rgba());
     }
 
     private void takeMeasurement() {
@@ -309,7 +279,11 @@ public class Tutorial3Activity extends Activity implements CvCameraViewListener2
     public boolean onTouch(View v, MotionEvent event) {
         //Log.i(TAG, "onTouch event");
         mButton.setEnabled(true);
-        //Toast.makeText(this, "disable touch view", Toast.LENGTH_SHORT).show();
+        if (mPresentation != null) {
+            mPresentation.setImageDynamic(lastFrame);
+        }
+
+       //Toast.makeText(this, "disable touch view", Toast.LENGTH_SHORT).show();
 
 /*        taFileStorage.create(root+ "/mats");
         int[][] intArray = new int[][]{{2,3,4},{5,6,7},{8,9,10}};

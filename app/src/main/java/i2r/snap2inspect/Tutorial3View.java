@@ -75,40 +75,12 @@ public class Tutorial3View extends JavaCameraView implements PictureCallback {
         taFileStorage.release();
     }
 
-    public List<String> getEffectList() {
-        return mCamera.getParameters().getSupportedColorEffects();
-    }
-
-    public boolean isEffectSupported() {
-        return (mCamera.getParameters().getColorEffect() != null);
-    }
-
-    public String getEffect() {
-        return mCamera.getParameters().getColorEffect();
-    }
-
-    public void setEffect(String effect) {
-        Camera.Parameters params = mCamera.getParameters();
-        params.setColorEffect(effect);
-        mCamera.setParameters(params);
-    }
-
-    public List<Size> getResolutionList() {
-        return mCamera.getParameters().getSupportedPreviewSizes();
-    }
-
-    public void setResolution(Size resolution) {
-        disconnectCamera();
-        mMaxHeight = resolution.height;
-        mMaxWidth = resolution.width;
-        connectCamera(getWidth(), getHeight());
-    }
-
-    public Size getResolution() {
-        return mCamera.getParameters().getPreviewSize();
-    }
-
     public boolean isBusy() {return p_status;}
+
+    public Mat getFrame(Mat rgbi) {
+        return rgbi;
+    }
+
 
     public void takePicture(final String fileName) {
         Log.i(TAG, "Taking picture");
@@ -131,11 +103,11 @@ public class Tutorial3View extends JavaCameraView implements PictureCallback {
         mCamera.startPreview();
         mCamera.setPreviewCallback(this);
         loadCalibParam();
-        FeatureDetector blobDetector;
-        blobDetector = FeatureDetector.create(FeatureDetector.SIMPLEBLOB);
-        String fileName = Environment.getExternalStorageDirectory().getPath() + "/blobparams2.yml";
-        blobDetector.read(fileName);
-        MatOfKeyPoint keypoints = new MatOfKeyPoint();
+        //FeatureDetector blobDetector;
+        //blobDetector = FeatureDetector.create(FeatureDetector.SIMPLEBLOB);
+        //String fileName = Environment.getExternalStorageDirectory().getPath() + "/blobparams2.yml";
+        //blobDetector.read(fileName);
+        //MatOfKeyPoint keypoints = new MatOfKeyPoint();
         Mat irgb = Imgcodecs.imdecode(new MatOfByte(data), Imgcodecs.CV_LOAD_IMAGE_UNCHANGED);
         Imgproc.cvtColor(irgb, irgb, Imgproc.COLOR_BGR2GRAY);
         blobDetector.detect(irgb, keypoints);
