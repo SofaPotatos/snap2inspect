@@ -39,6 +39,8 @@ public class Tutorial3Activity extends Activity implements CvCameraViewListener2
     private MediaRouter mMediaRouter;
     private i2r.snap2inspect.SamplePresentation mPresentation;
     private Mat lastFrame;
+
+
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
         if (mPresentation != null) {
@@ -115,6 +117,8 @@ public class Tutorial3Activity extends Activity implements CvCameraViewListener2
         if (mSwitch != null) {
             mSwitch.setOnCheckedChangeListener(this);
         }
+
+        System.loadLibrary("native");
     }
 
 
@@ -260,8 +264,10 @@ public class Tutorial3Activity extends Activity implements CvCameraViewListener2
     }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-        lastFrame = inputFrame.rgba();
-        return mOpenCvCameraView.getFrame(inputFrame.rgba());
+        //lastFrame = inputFrame.rgba();
+        lastFrame = inputFrame.gray();
+        salt(lastFrame.getNativeObjAddr(), 2000);
+        return mOpenCvCameraView.getFrame(lastFrame);
     }
 
     private void takeMeasurement() {
@@ -333,5 +339,7 @@ public class Tutorial3Activity extends Activity implements CvCameraViewListener2
         // BEGIN_INCLUDE(onStop)
 
     }
+
+    public native void salt(long matAddrGray, int nbrElem);
 
 }
