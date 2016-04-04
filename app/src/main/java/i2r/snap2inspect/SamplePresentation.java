@@ -29,6 +29,8 @@ import org.opencv.android.Utils;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfKeyPoint;
+import org.opencv.core.Point;
+import org.opencv.core.Scalar;
 import org.opencv.features2d.FeatureDetector;
 import org.opencv.imgproc.Imgproc;
 
@@ -73,22 +75,17 @@ public class SamplePresentation extends Presentation {
 
 
     public void setImage1() {
-        //mLayout.setBackgroundColor(0);
+//        mLayout.setBackgroundColor(0);
         //mText.setText("Marker Image Set");
-        mImageView.setImageResource(R.drawable.marker4);
-    }
-
-    public void setImage2() {
-
+//        mImageView.setImageResource(R.drawable.marker4);
+        Point vertex = new Point();
         if(init) {
             Mat mat_cb = new Mat(irows, icols, CvType.CV_8UC1);
-            for (int ic = 0; ic < icols; ic++) {
-                for (int ir = 0; ir < irows; ir++) {
-                    if ((ic % 80) == 0 && (ir % 80) == 0) {
-                        mat_cb.put(ir, ic, 255);
-                    } else {
-                        mat_cb.put(ir, ic, 0);
-                    }
+            for (int ic = 0; ic < 4; ic++) {
+                for (int ir = 0; ir < 6; ir++) {
+                    vertex.x=300+ic*80;
+                    vertex.y=250+ir*80;
+                    Imgproc.circle(mat_cb, vertex, 4, new Scalar(255, 0, 0), -1);
                 }
             }
             mat_cb_disp = new Mat(irows, icols, CvType.CV_8UC3);
@@ -98,7 +95,32 @@ public class SamplePresentation extends Presentation {
             init=false;
         }
         this.setImageDynamic(mat_cb_disp);
+        mLayout.setBackgroundColor(0);
+
+    }
+
+    public void setImage2() {
+
+//        if(init) {
+//            Mat mat_cb = new Mat(irows, icols, CvType.CV_8UC1);
+//            for (int ic = 0; ic < icols; ic++) {
+//                for (int ir = 0; ir < irows; ir++) {
+//                    if ((ic % 80) == 0 && (ir % 80) == 0) {
+//                        mat_cb.put(ir, ic, 255);
+//                    } else {
+//                        mat_cb.put(ir, ic, 0);
+//                    }
+//                }
+//            }
+//            mat_cb_disp = new Mat(irows, icols, CvType.CV_8UC3);
+//            mLayout.setBackgroundColor(0);
+//            //mText.setText("Marker Image Set");
+//            Imgproc.cvtColor(mat_cb, mat_cb_disp, Imgproc.COLOR_GRAY2RGB);
+//            init=false;
+//        }
+//        this.setImageDynamic(mat_cb_disp);
         //mImageView.setImageResource(R.drawable.chessboard);
+        mImageView.setImageResource(R.drawable.marker4);
     }
 
     public void setImageDynamic(Mat m) {

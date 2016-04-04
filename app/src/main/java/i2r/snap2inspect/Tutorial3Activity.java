@@ -6,9 +6,15 @@ import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewFrame;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.calib3d.Calib3d;
+import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.android.CameraBridgeViewBase.CvCameraViewListener2;
+import org.opencv.core.MatOfPoint2f;
+import org.opencv.core.Point;
+import org.opencv.core.Scalar;
+import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
 import android.annotation.SuppressLint;
@@ -265,8 +271,46 @@ public class Tutorial3Activity extends Activity implements CvCameraViewListener2
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
         //lastFrame = inputFrame.rgba();
+        //Size imgSize = new Size(640, 360);
+        //Size imgSize2 = new Size(1280, 720);
         lastFrame = inputFrame.gray();
+       // Imgproc.resize(lastFrame, lastFrame,imgSize);
+
+     //   Mat dispImg = new Mat ();
+     //   lastFrame.copyTo(dispImg);
+
+//        Size patternSize = new Size(9, 6);
+    //    MatOfPoint2f corners = new MatOfPoint2f();
+    //    Point vertex = new Point();
+//        Calib3d.findChessboardCorners(lastFrame, patternSize, corners, Calib3d.CALIB_CB_ADAPTIVE_THRESH + Calib3d.CALIB_CB_NORMALIZE_IMAGE
+//                + Calib3d.CALIB_CB_FAST_CHECK);
+//
+//        for (int i=0; i<corners.height();i++)
+//        {
+//            double[] m=corners.get(i, 0);
+//            vertex.x=m[0];
+//            vertex.y=m[1];
+//            Imgproc.circle(lastFrame, vertex,2, new Scalar(255, 0, 0), 2);
+//        }
+//
+//
+//
+//        Mat dclist=new Mat();
+//        Imgproc.threshold(lastFrame, lastFrame, 200, 255, Imgproc.THRESH_BINARY_INV);
+//        Calib3d.findCirclesGrid(lastFrame, new Size(4, 6), dclist, Calib3d.CALIB_CB_SYMMETRIC_GRID);
+//        for (int i = 0; i<dclist.rows();i++)
+//        {
+//            double[] m=dclist.get(i, 0);
+//            vertex.x=m[0];
+//            vertex.y=m[1];
+//            Imgproc.circle(dispImg, vertex,2, new Scalar(255), -1);
+//        }
+
+
+
         salt(lastFrame.getNativeObjAddr(), 2000);
+        //Imgproc.resize(dispImg, dispImg, imgSize2);
+      //  Imgproc.resize(lastFrame, lastFrame,imgSize2);
         return mOpenCvCameraView.getFrame(lastFrame);
     }
 
@@ -285,6 +329,7 @@ public class Tutorial3Activity extends Activity implements CvCameraViewListener2
     public boolean onTouch(View v, MotionEvent event) {
         //Log.i(TAG, "onTouch event");
         mButton.setEnabled(true);
+        updatePresentation();
         if (mPresentation != null) {
             mPresentation.setImageDynamic(lastFrame);
         }
