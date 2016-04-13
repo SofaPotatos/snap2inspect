@@ -81,11 +81,11 @@ public class SamplePresentation extends Presentation {
         Point vertex = new Point();
         if(init) {
             Mat mat_cb = new Mat(irows, icols, CvType.CV_8UC1);
-            for (int ic = 0; ic < 4; ic++) {
+            for (int ic = 0; ic < 8; ic++) {
                 for (int ir = 0; ir < 6; ir++) {
                     vertex.x=300+ic*80;
                     vertex.y=250+ir*80;
-                    Imgproc.circle(mat_cb, vertex, 4, new Scalar(255, 0, 0), -1);
+                    Imgproc.circle(mat_cb, vertex, 10, new Scalar(255, 0, 0), -1);
                 }
             }
             mat_cb_disp = new Mat(irows, icols, CvType.CV_8UC3);

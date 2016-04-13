@@ -40,12 +40,14 @@ public class Tutorial3Activity extends Activity implements CvCameraViewListener2
     private static final String TAG = "Snap2inspect::Activity";
 
     private i2r.snap2inspect.Tutorial3View mOpenCvCameraView;
+    private i2r.snap2inspect.CamProjCalib mCamProjCalib;
     private Button mButton;
     private Switch mSwitch;
     private MediaRouter mMediaRouter;
     private i2r.snap2inspect.SamplePresentation mPresentation;
-    private Mat lastFrame;
-
+    private Mat FrameG;
+    private Mat FrameRGBA;
+    private boolean init_stat=false;
 
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -54,9 +56,9 @@ public class Tutorial3Activity extends Activity implements CvCameraViewListener2
                     Toast.LENGTH_SHORT).show();
 
             if (isChecked) {
-                mPresentation.setImage1();
-            } else {
                 mPresentation.setImage2();
+            } else {
+                mPresentation.setImageDynamic(mCamProjCalib.pProjImage);
             }
         }
         else
@@ -98,10 +100,11 @@ public class Tutorial3Activity extends Activity implements CvCameraViewListener2
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         setContentView(R.layout.tutorial3_surface_view);
-
         mOpenCvCameraView = (i2r.snap2inspect.Tutorial3View) findViewById(R.id.tutorial3_activity_java_surface_view);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setCvCameraViewListener(this);
+        mCamProjCalib = new CamProjCalib();
+
         // BEGIN_INCLUDE(getMediaRouter)
         // Get the MediaRouter service
         mMediaRouter = (MediaRouter) getSystemService(Context.MEDIA_ROUTER_SERVICE);
@@ -270,10 +273,20 @@ public class Tutorial3Activity extends Activity implements CvCameraViewListener2
     }
 
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
-        //lastFrame = inputFrame.rgba();
+        FrameRGBA = inputFrame.rgba();
+        FrameG = inputFrame.gray();
         //Size imgSize = new Size(640, 360);
         //Size imgSize2 = new Size(1280, 720);
-        lastFrame = inputFrame.gray();
+        boolean mPatternWasFound = false;
+        boolean mBoardWasFound = false;
+        if(!init_stat) {
+            mCamProjCalib.setup(1280, 720, 1280, 720);
+            init_stat=true;
+        }
+
+        mCamProjCalib.processFrame(FrameG,FrameRGBA);
+
+
        // Imgproc.resize(lastFrame, lastFrame,imgSize);
 
      //   Mat dispImg = new Mat ();
@@ -295,32 +308,38 @@ public class Tutorial3Activity extends Activity implements CvCameraViewListener2
 //
 //
 //
-//        Mat dclist=new Mat();
-//        Imgproc.threshold(lastFrame, lastFrame, 200, 255, Imgproc.THRESH_BINARY_INV);
-//        Calib3d.findCirclesGrid(lastFrame, new Size(4, 6), dclist, Calib3d.CALIB_CB_SYMMETRIC_GRID);
-//        for (int i = 0; i<dclist.rows();i++)
-//        {
-//            double[] m=dclist.get(i, 0);
-//            vertex.x=m[0];
-//            vertex.y=m[1];
-//            Imgproc.circle(dispImg, vertex,2, new Scalar(255), -1);
+//
+//        MatOfPoint2f BoardCorners = new MatOfPoint2f();
+//        mBoardWasFound = Calib3d.findCirclesGrid(lastFrame, new Size(4, 11),BoardCorners, Calib3d.CALIB_CB_ASYMMETRIC_GRID);
+//        //mBoardWasFound=Calib3d.findChessboardCorners(lastFrame, new Size(9, 6), BoardCorners, Calib3d.CALIB_CB_ADAPTIVE_THRESH + Calib3d.CALIB_CB_NORMALIZE_IMAGE
+//        //        + Calib3d.CALIB_CB_FAST_CHECK);
+//        if(mBoardWasFound) {
+//            Calib3d.drawChessboardCorners(dispFrame, new Size(4, 11), BoardCorners, mBoardWasFound);
+//        }
+//
+//
+//        MatOfPoint2f PatternCorners = new MatOfPoint2f();
+//        Core.absdiff(lastFrame, new Scalar(255), lastFrame);
+//        //Imgproc.threshold(lastFrame, lastFrame, 0, 255, Imgproc.THRESH_BINARY_INV);
+//        mPatternWasFound=Calib3d.findCirclesGrid(lastFrame, new Size(6, 8), PatternCorners, Calib3d.CALIB_CB_SYMMETRIC_GRID);
+//        if(mPatternWasFound) {
+//            Calib3d.drawChessboardCorners(dispFrame, new Size(6, 8), PatternCorners, mPatternWasFound);
 //        }
 
-
-
-        salt(lastFrame.getNativeObjAddr(), 2000);
-        //Imgproc.resize(dispImg, dispImg, imgSize2);
-      //  Imgproc.resize(lastFrame, lastFrame,imgSize2);
-        return mOpenCvCameraView.getFrame(lastFrame);
+        //salt(lastFrame.getNativeObjAddr(), 2000);
+        return mOpenCvCameraView.getFrame(FrameRGBA);
+        //return mOpenCvCameraView.getFrame(mCamProjCalib.pProjImage);
     }
 
     private void takeMeasurement() {
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
-            String currentDateandTime = sdf.format(new Date());
-            String fileName = Environment.getExternalStorageDirectory().getPath() +
-                    "/sample_picture_" + currentDateandTime + ".jpg";
-            mOpenCvCameraView.takePicture(fileName);
-            Toast.makeText(this, fileName + " saved", Toast.LENGTH_SHORT).show();
+//            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
+//            String currentDateandTime = sdf.format(new Date());
+//            String fileName = Environment.getExternalStorageDirectory().getPath() +
+//                    "/sample_picture_" + currentDateandTime + ".jpg";
+//            mOpenCvCameraView.takePicture(fileName);
+//            Toast.makeText(this, fileName + " saved", Toast.LENGTH_SHORT).show();
+        mCamProjCalib.doCalibrate();
+
     }
 
 
@@ -330,9 +349,13 @@ public class Tutorial3Activity extends Activity implements CvCameraViewListener2
         //Log.i(TAG, "onTouch event");
         mButton.setEnabled(true);
         updatePresentation();
-        if (mPresentation != null) {
-            mPresentation.setImageDynamic(lastFrame);
+        if(!mCamProjCalib.addCorners()) {
+            Toast.makeText(this, "Adding capture failed!", Toast.LENGTH_SHORT).show();
         }
+
+//        if (mPresentation != null) {
+//            mPresentation.setImageDynamic(lastFrame);
+//        }
 
        //Toast.makeText(this, "disable touch view", Toast.LENGTH_SHORT).show();
 
