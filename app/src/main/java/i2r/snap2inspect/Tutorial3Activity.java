@@ -15,6 +15,7 @@ import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
+import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
 import android.annotation.SuppressLint;
@@ -48,6 +49,7 @@ public class Tutorial3Activity extends Activity implements CvCameraViewListener2
     private Mat FrameG;
     private Mat FrameRGBA;
     private boolean init_stat=false;
+    private boolean calib_stat=false;
 
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -275,59 +277,22 @@ public class Tutorial3Activity extends Activity implements CvCameraViewListener2
     public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
         FrameRGBA = inputFrame.rgba();
         FrameG = inputFrame.gray();
-        //Size imgSize = new Size(640, 360);
-        //Size imgSize2 = new Size(1280, 720);
-        boolean mPatternWasFound = false;
-        boolean mBoardWasFound = false;
-        if(!init_stat) {
-            mCamProjCalib.setup(1280, 720, 1280, 720);
-            init_stat=true;
+
+        if(!mCamProjCalib.isCalibrated()) {
+            if (!mCamProjCalib.isInitial()) {
+                mCamProjCalib.setup(1280, 720, 1280, 720);
+            }
+
+            mCamProjCalib.processFrame(FrameG, FrameRGBA);
+        }
+        else
+        {
+            mOpenCvCameraView.measureFrame(FrameG, FrameRGBA);
+
         }
 
-        mCamProjCalib.processFrame(FrameG,FrameRGBA);
-
-
-       // Imgproc.resize(lastFrame, lastFrame,imgSize);
-
-     //   Mat dispImg = new Mat ();
-     //   lastFrame.copyTo(dispImg);
-
-//        Size patternSize = new Size(9, 6);
-    //    MatOfPoint2f corners = new MatOfPoint2f();
-    //    Point vertex = new Point();
-//        Calib3d.findChessboardCorners(lastFrame, patternSize, corners, Calib3d.CALIB_CB_ADAPTIVE_THRESH + Calib3d.CALIB_CB_NORMALIZE_IMAGE
-//                + Calib3d.CALIB_CB_FAST_CHECK);
-//
-//        for (int i=0; i<corners.height();i++)
-//        {
-//            double[] m=corners.get(i, 0);
-//            vertex.x=m[0];
-//            vertex.y=m[1];
-//            Imgproc.circle(lastFrame, vertex,2, new Scalar(255, 0, 0), 2);
-//        }
-//
-//
-//
-//
-//        MatOfPoint2f BoardCorners = new MatOfPoint2f();
-//        mBoardWasFound = Calib3d.findCirclesGrid(lastFrame, new Size(4, 11),BoardCorners, Calib3d.CALIB_CB_ASYMMETRIC_GRID);
-//        //mBoardWasFound=Calib3d.findChessboardCorners(lastFrame, new Size(9, 6), BoardCorners, Calib3d.CALIB_CB_ADAPTIVE_THRESH + Calib3d.CALIB_CB_NORMALIZE_IMAGE
-//        //        + Calib3d.CALIB_CB_FAST_CHECK);
-//        if(mBoardWasFound) {
-//            Calib3d.drawChessboardCorners(dispFrame, new Size(4, 11), BoardCorners, mBoardWasFound);
-//        }
-//
-//
-//        MatOfPoint2f PatternCorners = new MatOfPoint2f();
-//        Core.absdiff(lastFrame, new Scalar(255), lastFrame);
-//        //Imgproc.threshold(lastFrame, lastFrame, 0, 255, Imgproc.THRESH_BINARY_INV);
-//        mPatternWasFound=Calib3d.findCirclesGrid(lastFrame, new Size(6, 8), PatternCorners, Calib3d.CALIB_CB_SYMMETRIC_GRID);
-//        if(mPatternWasFound) {
-//            Calib3d.drawChessboardCorners(dispFrame, new Size(6, 8), PatternCorners, mPatternWasFound);
-//        }
-
-        //salt(lastFrame.getNativeObjAddr(), 2000);
         return mOpenCvCameraView.getFrame(FrameRGBA);
+        //salt(lastFrame.getNativeObjAddr(), 2000);
         //return mOpenCvCameraView.getFrame(mCamProjCalib.pProjImage);
     }
 
@@ -338,7 +303,23 @@ public class Tutorial3Activity extends Activity implements CvCameraViewListener2
 //                    "/sample_picture_" + currentDateandTime + ".jpg";
 //            mOpenCvCameraView.takePicture(fileName);
 //            Toast.makeText(this, fileName + " saved", Toast.LENGTH_SHORT).show();
-        mCamProjCalib.doCalibrate();
+        if(mCamProjCalib.getCornersBufferSize()>2) {
+            mCamProjCalib.doCalibrate();
+            mCamProjCalib.clearCorners();
+            mCamProjCalib.setCalibrated();
+            Toast.makeText(this, "Camera projector calibration complete!", Toast.LENGTH_SHORT).show();
+
+            mOpenCvCameraView.setup();
+            if (mPresentation != null) {
+                mPresentation.setImageDynamic(mOpenCvCameraView.DispImg);
+            }
+
+        }
+        else
+        {
+            Toast.makeText(this, "At least 3 captures is needed for calibration", Toast.LENGTH_SHORT).show();
+        }
+
 
     }
 
@@ -347,11 +328,29 @@ public class Tutorial3Activity extends Activity implements CvCameraViewListener2
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         //Log.i(TAG, "onTouch event");
-        mButton.setEnabled(true);
-        updatePresentation();
-        if(!mCamProjCalib.addCorners()) {
-            Toast.makeText(this, "Adding capture failed!", Toast.LENGTH_SHORT).show();
+
+//        mCamProjCalib.setCalibrated();
+//        Toast.makeText(this, "Camera projector calibration complete!", Toast.LENGTH_SHORT).show();
+//
+//        mOpenCvCameraView.setup();
+//        if (mPresentation != null) {
+//            mPresentation.setImageDynamic(mOpenCvCameraView.DispImg);
+//        }
+
+        if(!mCamProjCalib.isCalibrated())
+        {
+            mButton.setEnabled(true);
+            updatePresentation();
+            if (mPresentation != null){
+                mPresentation.setImageDynamic(mCamProjCalib.pProjImage);
+            }
+
+            if(!mCamProjCalib.addCorners()) {
+                Toast.makeText(this, "Adding capture failed!", Toast.LENGTH_SHORT).show();
+            }
         }
+
+
 
 //        if (mPresentation != null) {
 //            mPresentation.setImageDynamic(lastFrame);

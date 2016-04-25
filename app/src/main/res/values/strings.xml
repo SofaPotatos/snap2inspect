@@ -5,7 +5,7 @@
     <string name="title_activity_main">MainActivity</string>
     <string name="secondary_connected">Connected to:\n%s</string>
     <string name="secondary_screen">Pattern</string>
-    <string name="measurement">Measure</string>
+    <string name="measurement">Calibrate</string>
     <string name="display_name">This display is: %s</string>
     <string name="display_color">Background color: #%X</string>
 </resources>

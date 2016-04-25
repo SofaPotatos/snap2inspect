@@ -1,5 +1,6 @@
 package i2r.snap2inspect;
 
+import android.os.Environment;
 import android.util.Log;
 import org.opencv.calib3d.Calib3d;
 import org.opencv.core.Core;
@@ -26,6 +27,7 @@ public class CamProjCalib {
     private MatOfPoint2f mCorners;
     private List<Mat> mCornersBuffer = new ArrayList<Mat>();
     private boolean mIsCalibrated = false;
+    private boolean mIsInitial=false;
 //
     private int mFlags;
     private double mSquareSize = 18.1;
@@ -33,13 +35,13 @@ public class CamProjCalib {
     private MatOfPoint3f mBoardPoints;
 //
     //Projector
-    private final Size pPatternSize = new Size(6, 8);
+    private final Size pPatternSize = new Size(4, 5); //(6,8)
     private final int pCornersSize = (int)(pPatternSize.width * pPatternSize.height);
     private boolean pPatternWasFound = false;
     private MatOfPoint2f pCorners;
     private List<Mat> pCornersBuffer = new ArrayList<Mat>();
-    private boolean pIsCalibrated = false;
-    private int pFlags;
+
+
     private double pSquareSize = 80;
     private Point pCenter = new Point(300, 250);
     private Size pImageSize;
@@ -79,32 +81,43 @@ public class CamProjCalib {
         mFlags =Calib3d.CALIB_FIX_PRINCIPAL_POINT +
                 Calib3d.CALIB_FIX_ASPECT_RATIO +
                 Calib3d.CALIB_ZERO_TANGENT_DIST +
-                Calib3d.CALIB_FIX_K1 +
-                Calib3d.CALIB_FIX_K2 +
-                Calib3d.CALIB_FIX_K3 +
-                Calib3d.CALIB_FIX_K4 +
-                Calib3d.CALIB_FIX_K5;
+                Calib3d.CALIB_FIX_INTRINSIC;
+//                Calib3d.CALIB_FIX_K1 +
+//                Calib3d.CALIB_FIX_K2 +
+//                Calib3d.CALIB_FIX_K3 +
+//                Calib3d.CALIB_FIX_K4 +
+//                Calib3d.CALIB_FIX_K5;
         CM = new Mat();
         Mat.eye(3, 3, CvType.CV_64FC1).copyTo(CM);
         PM = new Mat();
         Mat.eye(3, 3, CvType.CV_64FC1).copyTo(PM);
-        CM.put(0,0,820.2072312616415);
-        CM.put(1,1,820.2072312616415);
-        CM.put(0,2,639.5);
-        CM.put(10,2,359.5);
-        PM.put(0,0,1758.104828);
-        PM.put(1,1,1758.104828);
+        CM.put(0, 0, 820);
+        CM.put(1, 1, 820);
+        CM.put(0, 2, 639.5);
+        CM.put(10, 2, 359.5);
+        PM.put(0, 0, 1758);
+        PM.put(1,1,1758);
         PM.put(0,2,639.5);
         PM.put(10,2,359.5);
         CK= new Mat();
         Mat.zeros(5, 1, CvType.CV_64FC1).copyTo(CK);
         PK= new Mat();
         Mat.zeros(5, 1, CvType.CV_64FC1).copyTo(PK);
-
+        R1= new Mat();
+        Mat.zeros(3, 3, CvType.CV_64FC1).copyTo(R1);
+        R2= new Mat();
+        Mat.zeros(3, 3, CvType.CV_64FC1).copyTo(R2);
+        P1= new Mat();
+        Mat.zeros(3, 4, CvType.CV_64FC1).copyTo(P1);
+        P2= new Mat();
+        Mat.zeros(3, 4, CvType.CV_64FC1).copyTo(P2);
+        Q = new Mat();
+        Mat.zeros(4, 4, CvType.CV_64FC1).copyTo(Q);
         Mat.zeros(mPatternSize, CvType.CV_64FC1).copyTo(mBoardPoints);
         calcBoardCornerPositions();
         calcPatternCornerPositions();
         Log.i(TAG, "Instantiated new " + this.getClass());
+        setInitial();
         return true;
     }
 
@@ -120,13 +133,53 @@ public class CamProjCalib {
         }
         Calib3d.stereoCalibrate(oCornersBuffer, mCornersBuffer, pCornersBuffer, CM, CK, PM, PK, mImageSize, R, T, E, F, mFlags);
         mIsCalibrated = Core.checkRange(PM) && Core.checkRange(PK);
-        Log.i(TAG, "CM: " + CM.dump());
-        Log.i(TAG, "CK: " + CK.dump());
-        Log.i(TAG, "PM: " + PM.dump());
-        Log.i(TAG, "PK: " + PK.dump());
-        Log.i(TAG, "R: " + R.dump());
-        Log.i(TAG, "T: " + T.dump());
-        Log.i(TAG, "F: " + F.dump());
+//        Log.i(TAG, "CM: " + CM.dump());
+//        Log.i(TAG, "CK: " + CK.dump());
+//        Log.i(TAG, "PM: " + PM.dump());
+//        Log.i(TAG, "PK: " + PK.dump());
+//        Log.i(TAG, "R: " + R.dump());
+//        Log.i(TAG, "T: " + T.dump());
+//        Log.i(TAG, "T: " + E.dump());
+//        Log.i(TAG, "F: " + F.dump());
+        Calib3d.stereoRectify(CM, CK, PM, PK, mImageSize, R, T, R1, R2, P1, P2, Q);
+
+        TaFileStorage tfs=new TaFileStorage();
+        tfs.create(Environment.getExternalStorageDirectory() + "/PCC.xml");
+        //save result for calibration
+        CM.convertTo(CM, CvType.CV_32F);
+        tfs.writeMat("CM", CM);
+        CK.convertTo(CK, CvType.CV_32F);
+        tfs.writeMat("CK", CK);
+        PM.convertTo(PM, CvType.CV_32F);
+        tfs.writeMat("PM", PM);
+        PK.convertTo(PK, CvType.CV_32F);
+        tfs.writeMat("PK", PK);
+        R.convertTo(R, CvType.CV_32F);
+        tfs.writeMat("R", R);
+        T.convertTo(T, CvType.CV_32F);
+        tfs.writeMat("T", T);
+        E.convertTo(E, CvType.CV_32F);
+        tfs.writeMat("E", E);
+        F.convertTo(F, CvType.CV_32F);
+        tfs.writeMat("F", F);
+
+    //save result for rectification
+        R1.convertTo(R1, CvType.CV_32F);
+        tfs.writeMat("R1", R1);
+        R2.convertTo(R2, CvType.CV_32F);
+        tfs.writeMat("R2", R2);
+        P1.convertTo(P1, CvType.CV_32F);
+        tfs.writeMat("P1", P1);
+        P2.convertTo(P2, CvType.CV_32F);
+        tfs.writeMat("P2", P2);
+        Q.convertTo(Q, CvType.CV_32F);
+        tfs.writeMat("Q", Q);
+        tfs.release();
+
+        //taFileStorage.writeMat("dfa", homography);
+        //taFileStorage.writeMat("dfaf", homography);
+        //taFileStorage.release();
+
     }
 
     public void clearCorners() {
@@ -157,13 +210,20 @@ public class CamProjCalib {
         int DotSize = 10;
         Mat.zeros(pImageSize, CvType.CV_8UC1).copyTo(pProjImage);
 
-        for (int i = 0; i < pPatternSize.width; i++) {
-            for (int j = 0; j < pPatternSize.height * cn; j += cn) {
-                vertex.x=(float)pCenter.x+ j / cn * (float) pSquareSize;
+        for (int i = 0; i < pPatternSize.height; i++) {
+            for (int j = 0;j < pPatternSize.width * cn; j += cn) {
+                vertex.x=(float)pCenter.x+ (2 * (j / cn) + i % 2) * (float) pSquareSize;;
                 vertex.y=(float)pCenter.y+ i * (float) pSquareSize;
+                positions[(int) (i * pPatternSize.width * cn + j + 0)] = (float) vertex.x;
+                positions[(int) (i * pPatternSize.width * cn + j + 1)] = (float) vertex.y;
 
-                positions[(int) (i * pPatternSize.height * cn + j + 0)] = (float) vertex.x;
-                positions[(int) (i * pPatternSize.height * cn + j + 1)] = (float) vertex.y;
+//        for (int i = 0; i < pPatternSize.width; i++) {
+//            for (int j = 0; j < pPatternSize.height * cn; j += cn) {
+//
+//                vertex.x=(float)pCenter.x+ j / cn * (float) pSquareSize;
+//                vertex.y=(float)pCenter.y+ i * (float) pSquareSize;
+//                positions[(int) (i * pPatternSize.height * cn + j + 0)] = (float) vertex.x;
+//                positions[(int) (i * pPatternSize.height * cn + j + 1)] = (float) vertex.y;
 
                 Imgproc.circle(pProjImage, vertex, DotSize, new Scalar(255, 0, 0), -1);
             }
@@ -177,7 +237,7 @@ public class CamProjCalib {
                 mCorners, Calib3d.CALIB_CB_ASYMMETRIC_GRID);
         Core.absdiff(grayFrame, new Scalar(255), grayFrame);
         pPatternWasFound = Calib3d.findCirclesGrid(grayFrame, pPatternSize,
-                pCorners, Calib3d.CALIB_CB_SYMMETRIC_GRID);
+                pCorners, Calib3d.CALIB_CB_ASYMMETRIC_GRID);
     }
 
     private boolean backProject(Mat boardRot64, Mat boardTrans64, MatOfPoint2f imgPt, MatOfPoint3f worldPt) {
@@ -304,6 +364,14 @@ public class CamProjCalib {
 
     public void setCalibrated() {
         mIsCalibrated = true;
+    }
+
+    public boolean isInitial() {
+        return mIsInitial;
+    }
+
+    public void setInitial() {
+        mIsInitial = true;
     }
 }
 
