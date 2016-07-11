@@ -366,6 +366,10 @@ public class CamProjCalib {
         mIsCalibrated = true;
     }
 
+    public void resetCalibrated() {
+        mIsCalibrated = false;
+    }
+
     public boolean isInitial() {
         return mIsInitial;
     }

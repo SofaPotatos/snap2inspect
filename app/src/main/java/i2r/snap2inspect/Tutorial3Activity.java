@@ -20,7 +20,12 @@ import org.opencv.imgproc.Imgproc;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.Fragment;
 import android.content.Context;
+import android.hardware.camera2.CameraDevice;
+import android.hardware.camera2.CameraManager;
+import android.hardware.camera2.CameraMetadata;
+import android.hardware.camera2.CaptureRequest;
 import android.media.MediaRouter;
 import android.os.Bundle;
 import android.os.Environment;
@@ -284,6 +289,7 @@ public class Tutorial3Activity extends Activity implements CvCameraViewListener2
             }
 
             mCamProjCalib.processFrame(FrameG, FrameRGBA);
+
         }
         else
         {
@@ -303,24 +309,29 @@ public class Tutorial3Activity extends Activity implements CvCameraViewListener2
 //                    "/sample_picture_" + currentDateandTime + ".jpg";
 //            mOpenCvCameraView.takePicture(fileName);
 //            Toast.makeText(this, fileName + " saved", Toast.LENGTH_SHORT).show();
-        if(mCamProjCalib.getCornersBufferSize()>2) {
-            mCamProjCalib.doCalibrate();
-            mCamProjCalib.clearCorners();
-            mCamProjCalib.setCalibrated();
-            Toast.makeText(this, "Camera projector calibration complete!", Toast.LENGTH_SHORT).show();
+        if(mCamProjCalib.isCalibrated())
+        {
+            mCamProjCalib.resetCalibrated();
+            mCamProjCalib.setup(1280, 720, 1280, 720);
+        }
+        else {
+            if (mCamProjCalib.getCornersBufferSize() > 2) {
+                mCamProjCalib.doCalibrate();
+                mCamProjCalib.clearCorners();
+                mCamProjCalib.setCalibrated();
+                Toast.makeText(this, "Camera projector calibration complete!", Toast.LENGTH_SHORT).show();
+                mButton.setEnabled(false);
 
-            mOpenCvCameraView.setup();
-            if (mPresentation != null) {
-                mPresentation.setImageDynamic(mOpenCvCameraView.DispImg);
+                mOpenCvCameraView.setup();
+                if (mPresentation != null) {
+                    mPresentation.setImageDynamic(mOpenCvCameraView.DispImg);
+                }
+
+            } else {
+                Toast.makeText(this, "At least 3 captures is needed for calibration", Toast.LENGTH_SHORT).show();
             }
 
         }
-        else
-        {
-            Toast.makeText(this, "At least 3 captures is needed for calibration", Toast.LENGTH_SHORT).show();
-        }
-
-
     }
 
 
@@ -337,6 +348,21 @@ public class Tutorial3Activity extends Activity implements CvCameraViewListener2
 //            mPresentation.setImageDynamic(mOpenCvCameraView.DispImg);
 //        }
 
+//        float focus_distance_manual = 0.0f;
+//        CaptureRequest.Builder builder;
+//        builder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_IDLE);
+//        builder.set(CaptureRequest.LENS_FOCUS_DISTANCE, focus_distance_manual);
+//        Activity activity = getActivity();
+//
+//        CameraManager manager = (CameraManager) activity.getSystemService(Context.CAMERA_SERVICE);
+//
+//        CameraDevice mCameraDevice;
+//
+//        CaptureRequest.Builder  mPreviewRequestBuilder;
+//        mPreviewRequestBuilder
+//                = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+
+       // mOpenCvCameraView.lockFocus();
         if(!mCamProjCalib.isCalibrated())
         {
             mButton.setEnabled(true);
@@ -407,6 +433,6 @@ public class Tutorial3Activity extends Activity implements CvCameraViewListener2
 
     }
 
-    public native void salt(long matAddrGray, int nbrElem);
+   // public native void salt(long matAddrGray, int nbrElem);
 
 }
