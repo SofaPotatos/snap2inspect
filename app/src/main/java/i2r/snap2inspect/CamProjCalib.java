@@ -91,8 +91,8 @@ public class CamProjCalib {
         Mat.eye(3, 3, CvType.CV_64FC1).copyTo(CM);
         PM = new Mat();
         Mat.eye(3, 3, CvType.CV_64FC1).copyTo(PM);
-        CM.put(0, 0, 820);
-        CM.put(1, 1, 820);
+        CM.put(0, 0, 780.9);//CM.put(0, 0, 820);
+        CM.put(1, 1, 780.9);//CM.put(1, 1, 820);
         CM.put(0, 2, 639.5);
         CM.put(10, 2, 359.5);
         PM.put(0, 0, 1758);

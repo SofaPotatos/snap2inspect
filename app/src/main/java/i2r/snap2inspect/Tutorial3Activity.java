@@ -376,7 +376,11 @@ public class Tutorial3Activity extends Activity implements CvCameraViewListener2
             }
         }
 
-
+//        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
+//        String currentDateandTime = sdf.format(new Date());
+//        String fileName = Environment.getExternalStorageDirectory().getPath() + "/chessboard_picture_" + currentDateandTime + ".jpg";
+//        Imgcodecs.imwrite(fileName, FrameRGBA);
+//        Toast.makeText(this, "Image added!!!!!!", Toast.LENGTH_SHORT).show();
 
 //        if (mPresentation != null) {
 //            mPresentation.setImageDynamic(lastFrame);

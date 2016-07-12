@@ -41,20 +41,25 @@ public class Tutorial3View extends JavaCameraView implements PictureCallback {
     Mat Q;
     Mat P1;
     Mat P2;
+    Mat PCam1;
+    Mat PCam2;
     Mat R1;
     Mat R2;
     Mat PM;
     Mat PK;
     Mat CM;
     Mat CK;
+    Mat R;
+    Mat T;
+    Mat E;
     Mat DispImg;
     MatOfPoint2f ProjPoint;
     MatOfPoint2f RecProjPoint;
     ArrayList<Point3> DetectedPoints = new ArrayList<Point3>();
-    Mat irgb;
     boolean p_status;
 
-    float THRES_X=10;
+    float THRES_X=20;
+
 
     public Tutorial3View(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -96,7 +101,29 @@ public class Tutorial3View extends JavaCameraView implements PictureCallback {
         R1 = taFileStorage.readMat("R1");
         R2 = taFileStorage.readMat("R2");
         Q = taFileStorage.readMat("Q");
+        R = taFileStorage.readMat("R");
+        T = taFileStorage.readMat("T");
+        E = taFileStorage.readMat("E");
         taFileStorage.release();
+
+        double fs[] = new double[1];
+        PCam1 = new Mat();
+        Mat.zeros(3, 4, CvType.CV_64FC1).copyTo(PCam1);
+        PCam2 = new Mat();
+        Mat.zeros(3, 4, CvType.CV_64FC1).copyTo(PCam2);
+        PCam1.put(0,0,1.0);
+        PCam1.put(1,1,1.0);
+        PCam1.put(2,2,1.0);
+        for(int i=0;i<3;i++) {
+            for (int j = 0; j < 3; j++) {
+                R.get(i, j, fs);
+                PCam2.put(i, j, fs[0]);
+            }
+            T.get(i, 0, fs);
+            PCam2.put(i, 0, fs[0]);
+        }
+        PCam1.mul(CM);
+        PCam2.mul(PM);
 
         int DotSize = 5;
         org.opencv.core.Size pImageSize=new org.opencv.core.Size(1280,720);
@@ -158,42 +185,149 @@ public class Tutorial3View extends JavaCameraView implements PictureCallback {
 
 
 
+//    public void measureFrame(Mat gi, Mat rgbi)
+//    {
+//        //Imgproc.cvtColor(rgbi, irgb, Imgproc.COLOR_BGR2GRAY);
+//        blobDetector.detect(gi, keypoints);
+//        if(!keypoints.empty()){
+//            Imgproc.cvtColor(rgbi,rgbi,Imgproc.COLOR_BGRA2BGR);
+//            Features2d.drawKeypoints(rgbi, keypoints, rgbi);
+////        KeyPoint[] kpa;
+////        kpa=keypoints.toArray();
+////        List<Point> pint=new ArrayList<Point>();
+////        for(int i=0;i<kpa.length;i++){
+////            pint.add(kpa[i].pt);
+////        }
+////        MatOfPoint2f kpc_in = new MatOfPoint2f();
+//            MatOfPoint2f MatPsO=MatOfKeyPoint2MatOfPoint(keypoints);
+//
+//            MatOfPoint2f MatPs=new MatOfPoint2f();
+//        //kpc_in.fromList(pint);
+//            Imgproc.undistortPoints(MatPsO, MatPs, CM, CK, R1, P1);
+//
+////        TaFileStorage taFileStorage=new TaFileStorage();
+////        String root = Environment.getExternalStorageDirectory() +"";
+////        taFileStorage.create(root + "/result_pts.xml");
+////        Mat OutMat=new Mat();
+////        MatPs.copyTo(OutMat);
+////        OutMat.convertTo(OutMat, CvType.CV_32F);
+////        Log.i(TAG, "ImgPt " + OutMat);
+////        taFileStorage.writeMat("ImgPt", OutMat);
+////        RecProjPoint.copyTo(OutMat);
+////        OutMat.convertTo(OutMat, CvType.CV_32F);
+////        taFileStorage.writeMat("ProjPt",OutMat);
+////        taFileStorage.release();
+//
+//            for(Point ptpan : RecProjPoint.toArray())
+//            {
+//                ptpan.x=ptpan.x;
+//                Imgproc.circle(rgbi, ptpan, 5, new Scalar(0, 0, 255), 2);
+//            }
+//            DecimalFormat twoPlaces = new DecimalFormat("0.0");
+//            Mat xyd1 = new Mat(4, 1, CvType.CV_32F);
+//            Mat NullM = new Mat();
+//            Mat.zeros(3, 1, CvType.CV_32F).copyTo(NullM);
+//            Point3 dpt = new Point3();
+//            float xyd1a[] = new float[4];
+//            int img_idx;
+//            for (Point ptpan : RecProjPoint.toArray()) {
+//                img_idx=0;
+//                for (Point ptimg : MatPs.toArray()) {
+//                    Imgproc.circle(rgbi, ptimg, 5, new Scalar(0, 255, 0), 2);
+//                    if (Math.abs(ptimg.x - ptpan.x) < THRES_X) {
+//                        xyd1a[0] = (float) ptimg.x;
+//                        xyd1a[1] = (float) ptimg.y;
+//                        xyd1a[2] = (float) (ptimg.y - ptpan.y);
+//                        xyd1a[3] = 1;
+//                        xyd1.put(0, 0, xyd1a);
+//                        Core.gemm(Q, xyd1, 1, NullM, 0, xyd1, 0);
+//                        xyd1.get(0, 0, xyd1a);
+//
+//                        dpt.x = xyd1a[0] / xyd1a[3];
+//                        dpt.y = xyd1a[1] / xyd1a[3];
+//                        dpt.z = xyd1a[2] / xyd1a[3];
+//                        DetectedPoints.add(dpt.clone());
+//                        Imgproc.putText(rgbi, "(" + twoPlaces.format(dpt.x) + ", " + twoPlaces.format(dpt.y) + ", " + twoPlaces.format(dpt.z) + ")", MatPsO.toArray()[img_idx],
+//                                Core.FONT_HERSHEY_SIMPLEX, 1.0, new Scalar(255, 0, 0));
+//                        //break
+//                        Imgproc.line(rgbi, MatPsO.toArray()[img_idx], ptpan,new Scalar(255, 0, 0), 1);
+//                        Imgproc.circle(rgbi,  MatPsO.toArray()[img_idx], 5, new Scalar(255, 0, 0), 2);
+//                        break;
+//                    }
+//                    img_idx++;
+//                }
+//
+//            }
+//            double V, A, D;
+//            double x1,x2,x3,x4,y1,y2,y3,y4,z1,z2,z3,z4,c1,c2,c3;
+//            if(DetectedPoints.size()==4) {
+//                x1=DetectedPoints.get(0).x;
+//                y1=DetectedPoints.get(0).y;
+//                z1=DetectedPoints.get(0).z;
+//                x2=DetectedPoints.get(1).x-x1;
+//                y2=DetectedPoints.get(1).y-y1;
+//                z2=DetectedPoints.get(1).z-z1;
+//                x3=DetectedPoints.get(2).x-x1;
+//                y3=DetectedPoints.get(2).y-y1;
+//                z3=DetectedPoints.get(2).z-z1;
+//                x4=DetectedPoints.get(3).x-x1;
+//                y4=DetectedPoints.get(3).y-y1;
+//                z4=DetectedPoints.get(3).z-z1;
+//                c1=y2*z3-z2*y3;
+//                c2=z2*x3-x2*z3;
+//                c3=x2*y3-y2*x3;
+//                V = Math.abs(c1*x4+c2*y4+c3*z4)/6;
+//                A = Math.abs(x2*x3+y2*y3+z2*z3)/2;
+//                D = 3*V/A;
+//                //Imgproc.putText(rgbi, twoPlaces.format(x2) + " " + twoPlaces.format(y2) + " " + twoPlaces.format(z2) + " " + twoPlaces.format(x3) + " " + twoPlaces.format(y3) + " " + twoPlaces.format(z3), new Point(rgbi.cols() / 5 * 1, rgbi.rows() * 0.3), Core.FONT_HERSHEY_SIMPLEX, 1.0, new Scalar(255, 0, 0));
+//                Imgproc.putText(rgbi, "Depth: "+ twoPlaces.format(D) + " Area: " + twoPlaces.format(A) + " Volume: " + twoPlaces.format(V), new Point(rgbi.cols() / 8 * 1, rgbi.rows() * 0.1), Core.FONT_HERSHEY_SIMPLEX, 1.0, new Scalar(255, 0, 0));
+//            }
+//            DetectedPoints.clear();
+//
+//
+////            int img_idx=0;
+////            for (Point ptimg : MatPs.toArray()) {
+////                Imgproc.circle(rgbi, ptimg, 5, new Scalar(0, 255, 0), 2);
+////                for (Point ptpan : RecProjPoint.toArray()) {
+////                        if (Math.abs(ptimg.x - ptpan.x) < THRES_X) {
+////                        xyd1a[0] = (float) ptimg.x;
+////                        xyd1a[1] = (float) ptimg.y;
+////                        xyd1a[2] = (float) (ptimg.y - ptpan.y);
+////                        xyd1a[3] = 1;
+////                        xyd1.put(0, 0, xyd1a);
+////                        Core.gemm(Q, xyd1, 1, NullM, 0, xyd1, 0);
+////                        xyd1.get(0, 0, xyd1a);
+////                        dpt.x = xyd1a[0] / xyd1a[3];
+////                        dpt.y = xyd1a[1] / xyd1a[3];
+////                        dpt.z = xyd1a[2] / xyd1a[3];
+////                        //DetectedPoints.add(dpt);
+////                        Imgproc.putText(rgbi, "(" + twoPlaces.format(dpt.x) + ", " + twoPlaces.format(dpt.y) + ", " + twoPlaces.format(dpt.z) + ")", MatPsO.toArray()[img_idx],
+////                                Core.FONT_HERSHEY_SIMPLEX, 1.0, new Scalar(255, 0, 0));
+////                        //break
+////                        Imgproc.circle(rgbi,  MatPsO.toArray()[img_idx], 5, new Scalar(255, 0, 0), 2);
+////                    }
+////
+////                }
+////                img_idx++;
+////            }
+//        }
+//
+//
+//    }
+
     public void measureFrame(Mat gi, Mat rgbi)
     {
-        //Imgproc.cvtColor(rgbi, irgb, Imgproc.COLOR_BGR2GRAY);
         blobDetector.detect(gi, keypoints);
         if(!keypoints.empty()){
             Imgproc.cvtColor(rgbi,rgbi,Imgproc.COLOR_BGRA2BGR);
             Features2d.drawKeypoints(rgbi, keypoints, rgbi);
-//        KeyPoint[] kpa;
-//        kpa=keypoints.toArray();
-//        List<Point> pint=new ArrayList<Point>();
-//        for(int i=0;i<kpa.length;i++){
-//            pint.add(kpa[i].pt);
-//        }
-//        MatOfPoint2f kpc_in = new MatOfPoint2f();
             MatOfPoint2f MatPsO=MatOfKeyPoint2MatOfPoint(keypoints);
 
             MatOfPoint2f MatPs=new MatOfPoint2f();
-        //kpc_in.fromList(pint);
             Imgproc.undistortPoints(MatPsO, MatPs, CM, CK, R1, P1);
 
-//        TaFileStorage taFileStorage=new TaFileStorage();
-//        String root = Environment.getExternalStorageDirectory() +"";
-//        taFileStorage.create(root + "/result_pts.xml");
-//        Mat OutMat=new Mat();
-//        MatPs.copyTo(OutMat);
-//        OutMat.convertTo(OutMat, CvType.CV_32F);
-//        Log.i(TAG, "ImgPt " + OutMat);
-//        taFileStorage.writeMat("ImgPt", OutMat);
-//        RecProjPoint.copyTo(OutMat);
-//        OutMat.convertTo(OutMat, CvType.CV_32F);
-//        taFileStorage.writeMat("ProjPt",OutMat);
-//        taFileStorage.release();
-
-            for(Point ptpan : RecProjPoint.toArray())
+            for(Point ptpan : ProjPoint.toArray())
             {
-                ptpan.x=ptpan.x;
                 Imgproc.circle(rgbi, ptpan, 5, new Scalar(0, 0, 255), 2);
             }
             DecimalFormat twoPlaces = new DecimalFormat("0.0");
@@ -202,35 +336,93 @@ public class Tutorial3View extends JavaCameraView implements PictureCallback {
             Mat.zeros(3, 1, CvType.CV_32F).copyTo(NullM);
             Point3 dpt = new Point3();
             float xyd1a[] = new float[4];
+            int img_cor[] = new int[4];
+            int[][] img_cor_tmp = new int[4][5];
             int img_idx;
-            for (Point ptpan : RecProjPoint.toArray()) {
-                img_idx=0;
-                for (Point ptimg : MatPs.toArray()) {
-                    Imgproc.circle(rgbi, ptimg, 5, new Scalar(0, 255, 0), 2);
-                    if (Math.abs(ptimg.x - ptpan.x) < THRES_X) {
-                        xyd1a[0] = (float) ptimg.x;
-                        xyd1a[1] = (float) ptimg.y;
-                        xyd1a[2] = (float) (ptimg.y - ptpan.y);
-                        xyd1a[3] = 1;
-                        xyd1.put(0, 0, xyd1a);
-                        Core.gemm(Q, xyd1, 1, NullM, 0, xyd1, 0);
-                        xyd1.get(0, 0, xyd1a);
+            int ldm_idx;
+            int buf_idx;
+            ldm_idx=0;
+            for(int i=0;i<4;i++) {
+                img_cor[i]=-1;
+            }
 
-                        dpt.x = xyd1a[0] / xyd1a[3];
-                        dpt.y = xyd1a[1] / xyd1a[3];
-                        dpt.z = xyd1a[2] / xyd1a[3];
-                        DetectedPoints.add(dpt.clone());
-                        Imgproc.putText(rgbi, "(" + twoPlaces.format(dpt.x) + ", " + twoPlaces.format(dpt.y) + ", " + twoPlaces.format(dpt.z) + ")", MatPsO.toArray()[img_idx],
-                                Core.FONT_HERSHEY_SIMPLEX, 1.0, new Scalar(255, 0, 0));
-                        //break
-                        Imgproc.line(rgbi, MatPsO.toArray()[img_idx], ptpan,new Scalar(255, 0, 0), 1);
-                        Imgproc.circle(rgbi,  MatPsO.toArray()[img_idx], 5, new Scalar(255, 0, 0), 2);
-                        break;
+            for (Point ptpan : RecProjPoint.toArray()) {
+                img_idx = 0;
+                buf_idx = 0;
+                for (Point ptimg : MatPs.toArray()) {
+                    if (Math.abs(ptimg.x - ptpan.x) < THRES_X) {
+                        img_cor_tmp[ldm_idx][buf_idx+1]=img_idx;
+                        if(buf_idx<5) {
+                            buf_idx++;
+                            img_cor_tmp[ldm_idx][0]=buf_idx;
+                        }
+                        else
+                        {
+                            break;
+                        }
                     }
                     img_idx++;
                 }
-
+                ldm_idx++;
             }
+            double MINY=720;
+            double MINX=1280;
+            double MAXX=0;
+            for (ldm_idx=0; ldm_idx<4;ldm_idx++) {
+                img_idx = 0;
+                for (int i=0; i<img_cor_tmp[ldm_idx][0]; i++) {
+                    if (ldm_idx==0) {
+                        if(MINY>MatPsO.toArray()[img_cor_tmp[ldm_idx][i+1]].y) {
+                            MINY=MatPsO.toArray()[img_cor_tmp[ldm_idx][i+1]].y;
+                            img_cor[ldm_idx]=img_cor_tmp[ldm_idx][i+1];
+                        }
+                    }
+
+                    if (ldm_idx==1) {
+                        if(MINX>MatPsO.toArray()[img_cor_tmp[ldm_idx][i+1]].x) {
+                            MINX=MatPsO.toArray()[img_cor_tmp[ldm_idx][i+1]].x;
+                            img_cor[ldm_idx]=img_cor_tmp[ldm_idx][i+1];
+                        }
+                    }
+
+                    if (ldm_idx==2) {
+                        if(MAXX<MatPsO.toArray()[img_cor_tmp[ldm_idx][i+1]].x) {
+                            MAXX=MatPsO.toArray()[img_cor_tmp[ldm_idx][i+1]].x;
+                            img_cor[ldm_idx]=img_cor_tmp[ldm_idx][i+1];
+                        }
+                    }
+
+                    if (ldm_idx==3) {
+                        if(img_cor_tmp[ldm_idx][i+1]!=img_cor[0]&&img_cor_tmp[ldm_idx][i+1]!=img_cor[1]&&img_cor_tmp[ldm_idx][i+1]!=img_cor[2]) {
+                            img_cor[ldm_idx]=img_cor_tmp[ldm_idx][i+1];
+                        }
+                    }
+                }
+            }
+            ldm_idx=0;
+            for(Point ptpan : RecProjPoint.toArray()) {
+                if(img_cor[ldm_idx]!=-1) {
+                    xyd1a[0] = (float) MatPs.toArray()[img_cor[ldm_idx]].x;
+                    xyd1a[1] = (float) MatPs.toArray()[img_cor[ldm_idx]].y;
+                    xyd1a[2] = (float) (MatPs.toArray()[img_cor[ldm_idx]].y - ptpan.y);
+                    xyd1a[3] = 1;
+                    xyd1.put(0, 0, xyd1a);
+                    Core.gemm(Q, xyd1, 1, NullM, 0, xyd1, 0);
+                    xyd1.get(0, 0, xyd1a);
+                    dpt.x = xyd1a[0] / xyd1a[3];
+                    dpt.y = xyd1a[1] / xyd1a[3];
+                    dpt.z = xyd1a[2] / xyd1a[3];
+
+
+                    DetectedPoints.add(dpt.clone());
+                    Imgproc.putText(rgbi, "(" + twoPlaces.format(dpt.x) + ", " + twoPlaces.format(dpt.y) + ", " + twoPlaces.format(dpt.z) + ")", MatPsO.toArray()[img_cor[ldm_idx]],
+                            Core.FONT_HERSHEY_SIMPLEX, 1.0, new Scalar(255, 0, 0));
+                    Imgproc.line(rgbi, MatPsO.toArray()[img_cor[ldm_idx]], ProjPoint.toArray()[ldm_idx], new Scalar(0, 255, 0), 1);
+                    Imgproc.circle(rgbi, MatPsO.toArray()[img_cor[ldm_idx]], 5, new Scalar(255, 0, 0), 2);
+                }
+                ldm_idx++;
+            }
+
             double V, A, D;
             double x1,x2,x3,x4,y1,y2,y3,y4,z1,z2,z3,z4,c1,c2,c3;
             if(DetectedPoints.size()==4) {
@@ -252,37 +444,9 @@ public class Tutorial3View extends JavaCameraView implements PictureCallback {
                 V = Math.abs(c1*x4+c2*y4+c3*z4)/6;
                 A = Math.abs(x2*x3+y2*y3+z2*z3)/2;
                 D = 3*V/A;
-                //Imgproc.putText(rgbi, twoPlaces.format(x2) + " " + twoPlaces.format(y2) + " " + twoPlaces.format(z2) + " " + twoPlaces.format(x3) + " " + twoPlaces.format(y3) + " " + twoPlaces.format(z3), new Point(rgbi.cols() / 5 * 1, rgbi.rows() * 0.3), Core.FONT_HERSHEY_SIMPLEX, 1.0, new Scalar(255, 0, 0));
                 Imgproc.putText(rgbi, "Depth: "+ twoPlaces.format(D) + " Area: " + twoPlaces.format(A) + " Volume: " + twoPlaces.format(V), new Point(rgbi.cols() / 8 * 1, rgbi.rows() * 0.1), Core.FONT_HERSHEY_SIMPLEX, 1.0, new Scalar(255, 0, 0));
             }
             DetectedPoints.clear();
-
-
-//            int img_idx=0;
-//            for (Point ptimg : MatPs.toArray()) {
-//                Imgproc.circle(rgbi, ptimg, 5, new Scalar(0, 255, 0), 2);
-//                for (Point ptpan : RecProjPoint.toArray()) {
-//                        if (Math.abs(ptimg.x - ptpan.x) < THRES_X) {
-//                        xyd1a[0] = (float) ptimg.x;
-//                        xyd1a[1] = (float) ptimg.y;
-//                        xyd1a[2] = (float) (ptimg.y - ptpan.y);
-//                        xyd1a[3] = 1;
-//                        xyd1.put(0, 0, xyd1a);
-//                        Core.gemm(Q, xyd1, 1, NullM, 0, xyd1, 0);
-//                        xyd1.get(0, 0, xyd1a);
-//                        dpt.x = xyd1a[0] / xyd1a[3];
-//                        dpt.y = xyd1a[1] / xyd1a[3];
-//                        dpt.z = xyd1a[2] / xyd1a[3];
-//                        //DetectedPoints.add(dpt);
-//                        Imgproc.putText(rgbi, "(" + twoPlaces.format(dpt.x) + ", " + twoPlaces.format(dpt.y) + ", " + twoPlaces.format(dpt.z) + ")", MatPsO.toArray()[img_idx],
-//                                Core.FONT_HERSHEY_SIMPLEX, 1.0, new Scalar(255, 0, 0));
-//                        //break
-//                        Imgproc.circle(rgbi,  MatPsO.toArray()[img_idx], 5, new Scalar(255, 0, 0), 2);
-//                    }
-//
-//                }
-//                img_idx++;
-//            }
         }
 
 
