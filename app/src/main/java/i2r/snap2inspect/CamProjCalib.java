@@ -94,11 +94,11 @@ public class CamProjCalib {
         CM.put(0, 0, 780.9);//CM.put(0, 0, 820);
         CM.put(1, 1, 780.9);//CM.put(1, 1, 820);
         CM.put(0, 2, 639.5);
-        CM.put(10, 2, 359.5);
+        CM.put(1, 2, 359.5);
         PM.put(0, 0, 1758);
         PM.put(1,1,1758);
         PM.put(0,2,639.5);
-        PM.put(10,2,359.5);
+        PM.put(1,2,359.5);
         CK= new Mat();
         Mat.zeros(5, 1, CvType.CV_64FC1).copyTo(CK);
         PK= new Mat();

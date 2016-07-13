@@ -363,6 +363,8 @@ public class Tutorial3Activity extends Activity implements CvCameraViewListener2
 //                = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
 
        // mOpenCvCameraView.lockFocus();
+
+//        mOpenCvCameraView.setup();
         if(!mCamProjCalib.isCalibrated())
         {
             mButton.setEnabled(true);

@@ -23,6 +23,7 @@ import org.opencv.features2d.FeatureDetector;
 import org.opencv.features2d.Features2d;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.utils.Converters;
 
 import android.content.Context;
 import android.hardware.Camera;
@@ -106,24 +107,28 @@ public class Tutorial3View extends JavaCameraView implements PictureCallback {
         E = taFileStorage.readMat("E");
         taFileStorage.release();
 
-        double fs[] = new double[1];
+        float fs[] = new float[1];
+        Mat PCam1tmp= new Mat();
         PCam1 = new Mat();
-        Mat.zeros(3, 4, CvType.CV_64FC1).copyTo(PCam1);
+        Mat.zeros(3, 4, CvType.CV_32FC1).copyTo(PCam1tmp);
+        Mat PCam2tmp= new Mat();
         PCam2 = new Mat();
-        Mat.zeros(3, 4, CvType.CV_64FC1).copyTo(PCam2);
-        PCam1.put(0,0,1.0);
-        PCam1.put(1,1,1.0);
-        PCam1.put(2,2,1.0);
+        Mat.zeros(3, 4, CvType.CV_32FC1).copyTo(PCam2tmp);
+        fs[0]=1;
+        PCam1tmp.put(0,0,fs);
+        PCam1tmp.put(1,1,fs);
+        PCam1tmp.put(2,2,fs);
         for(int i=0;i<3;i++) {
             for (int j = 0; j < 3; j++) {
                 R.get(i, j, fs);
-                PCam2.put(i, j, fs[0]);
+                PCam2tmp.put(i, j, fs);
             }
             T.get(i, 0, fs);
-            PCam2.put(i, 0, fs[0]);
+            PCam2tmp.put(i, 3, fs);
         }
-        PCam1.mul(CM);
-        PCam2.mul(PM);
+        Core.gemm(CM, PCam1tmp, 1, new Mat(), 0, PCam1, 0);
+        Core.gemm(PM, PCam2tmp, 1, new Mat(), 0, PCam2, 0);
+
 
         int DotSize = 5;
         org.opencv.core.Size pImageSize=new org.opencv.core.Size(1280,720);
@@ -399,20 +404,48 @@ public class Tutorial3View extends JavaCameraView implements PictureCallback {
                     }
                 }
             }
-            ldm_idx=0;
-            for(Point ptpan : RecProjPoint.toArray()) {
-                if(img_cor[ldm_idx]!=-1) {
-                    xyd1a[0] = (float) MatPs.toArray()[img_cor[ldm_idx]].x;
-                    xyd1a[1] = (float) MatPs.toArray()[img_cor[ldm_idx]].y;
-                    xyd1a[2] = (float) (MatPs.toArray()[img_cor[ldm_idx]].y - ptpan.y);
-                    xyd1a[3] = 1;
-                    xyd1.put(0, 0, xyd1a);
-                    Core.gemm(Q, xyd1, 1, NullM, 0, xyd1, 0);
-                    xyd1.get(0, 0, xyd1a);
-                    dpt.x = xyd1a[0] / xyd1a[3];
-                    dpt.y = xyd1a[1] / xyd1a[3];
-                    dpt.z = xyd1a[2] / xyd1a[3];
 
+            float fs[] = new float[1];
+            float sc;
+            Mat pc1=new Mat(2,1,CvType.CV_32FC1);
+            Mat pc2=new Mat(2,1,CvType.CV_32FC1);
+            Mat p3=new Mat();
+            Mat p4=new Mat();
+            ldm_idx=0;
+//            for(Point ptpan : RecProjPoint.toArray()) {
+            for(Point ptpan : ProjPoint.toArray()) {
+                if(img_cor[ldm_idx]!=-1) {
+                    // triangulation in rectified space
+//                    xyd1a[0] = (float) MatPs.toArray()[img_cor[ldm_idx]].x;
+//                    xyd1a[1] = (float) MatPs.toArray()[img_cor[ldm_idx]].y;
+//                    xyd1a[2] = (float) (MatPs.toArray()[img_cor[ldm_idx]].y - ptpan.y);
+//                    xyd1a[3] = 1;
+//                    xyd1.put(0, 0, xyd1a);
+//                    Core.gemm(Q, xyd1, 1, NullM, 0, xyd1, 0);
+//                    xyd1.get(0, 0, xyd1a);
+//                    dpt.x = xyd1a[0] / xyd1a[3];
+//                    dpt.y = xyd1a[1] / xyd1a[3];
+//                    dpt.z = xyd1a[2] / xyd1a[3];
+
+
+                    fs[0]=(float) (MatPs.toArray()[img_cor[ldm_idx]].x);
+                    pc1.put(0,0,fs);
+                    fs[0]=(float) (MatPs.toArray()[img_cor[ldm_idx]].y);
+                    pc1.put(1,0,fs);
+                    fs[0]=(float) (ptpan.x);
+                    pc2.put(0,0,fs);
+                    fs[0]=(float) (ptpan.y);
+                    pc2.put(1,0,fs);
+                    Calib3d.triangulatePoints(PCam1,PCam2,pc1, pc2, p4);
+                    p4.get(3,0,fs);
+                    sc=fs[0];
+                    //Calib3d.convertPointsFromHomogeneous(p4,p3);
+                    p4.get(0,0,fs);
+                    dpt.x=fs[0]/sc;
+                    p4.get(1,0,fs);
+                    dpt.y=fs[0]/sc;
+                    p4.get(2,0,fs);
+                    dpt.z=fs[0]/sc;
 
                     DetectedPoints.add(dpt.clone());
                     Imgproc.putText(rgbi, "(" + twoPlaces.format(dpt.x) + ", " + twoPlaces.format(dpt.y) + ", " + twoPlaces.format(dpt.z) + ")", MatPsO.toArray()[img_cor[ldm_idx]],
@@ -444,7 +477,7 @@ public class Tutorial3View extends JavaCameraView implements PictureCallback {
                 V = Math.abs(c1*x4+c2*y4+c3*z4)/6;
                 A = Math.abs(x2*x3+y2*y3+z2*z3)/2;
                 D = 3*V/A;
-                Imgproc.putText(rgbi, "Depth: "+ twoPlaces.format(D) + " Area: " + twoPlaces.format(A) + " Volume: " + twoPlaces.format(V), new Point(rgbi.cols() / 8 * 1, rgbi.rows() * 0.1), Core.FONT_HERSHEY_SIMPLEX, 1.0, new Scalar(255, 0, 0));
+                Imgproc.putText(rgbi, "Depth: "+ twoPlaces.format(D) + " Area: " + twoPlaces.format(A) + " Volume: " + twoPlaces.format(V), new Point(rgbi.cols() / 16 * 1, rgbi.rows() * 0.1), Core.FONT_HERSHEY_SIMPLEX, 1.0, new Scalar(255, 0, 0));
             }
             DetectedPoints.clear();
         }
