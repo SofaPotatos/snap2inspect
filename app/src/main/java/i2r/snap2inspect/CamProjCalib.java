@@ -212,19 +212,10 @@ public class CamProjCalib {
 
         for (int i = 0; i < pPatternSize.height; i++) {
             for (int j = 0;j < pPatternSize.width * cn; j += cn) {
-                vertex.x=(float)pCenter.x+ (2 * (j / cn) + i % 2) * (float) pSquareSize;;
+                vertex.x=(float)pCenter.x+ (2 * (j / cn) + i % 2) * (float) pSquareSize;
                 vertex.y=(float)pCenter.y+ i * (float) pSquareSize;
                 positions[(int) (i * pPatternSize.width * cn + j + 0)] = (float) vertex.x;
                 positions[(int) (i * pPatternSize.width * cn + j + 1)] = (float) vertex.y;
-
-//        for (int i = 0; i < pPatternSize.width; i++) {
-//            for (int j = 0; j < pPatternSize.height * cn; j += cn) {
-//
-//                vertex.x=(float)pCenter.x+ j / cn * (float) pSquareSize;
-//                vertex.y=(float)pCenter.y+ i * (float) pSquareSize;
-//                positions[(int) (i * pPatternSize.height * cn + j + 0)] = (float) vertex.x;
-//                positions[(int) (i * pPatternSize.height * cn + j + 1)] = (float) vertex.y;
-
                 Imgproc.circle(pProjImage, vertex, DotSize, new Scalar(255, 0, 0), -1);
             }
         }
@@ -325,15 +316,9 @@ public class CamProjCalib {
             Mat rvec = new Mat();
             Mat tvec = new Mat();
             MatOfDouble CKT=new MatOfDouble(CK);
-
-            //mCornersBuffer.add(mCorners.clone());// Wrong for Debug Only
             mCornersBuffer.add(pCorners.clone());
             Calib3d.solvePnP(mBoardPoints, mCorners, CM, CKT, rvec, tvec);
             MatOfPoint3f oCorners=new MatOfPoint3f();
-            //Mat tmpOpoint= new Mat();
-            //tmpOpoint.create(pCornersSize, 1, CvType.CV_32FC3);
-
-            //backProject(rvec, tvec, mCorners, oCorners);// Wrong for Debug Only
             if(backProject(rvec, tvec, pCorners, oCorners))
             {
                 oCornersBuffer.add(oCorners.clone());

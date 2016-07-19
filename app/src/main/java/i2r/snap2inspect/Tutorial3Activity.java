@@ -22,6 +22,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CameraMetadata;
@@ -29,6 +30,8 @@ import android.hardware.camera2.CaptureRequest;
 import android.media.MediaRouter;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
@@ -55,6 +58,7 @@ public class Tutorial3Activity extends Activity implements CvCameraViewListener2
     private Mat FrameRGBA;
     private boolean init_stat=false;
     private boolean calib_stat=false;
+    private static final int REQUEST_WRITE_STORAGE = 112;
 
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -335,6 +339,25 @@ public class Tutorial3Activity extends Activity implements CvCameraViewListener2
     }
 
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode)
+        {
+            case REQUEST_WRITE_STORAGE: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+                {
+                    Toast.makeText(this, "WRITE_STORAGE_PERMISSION_GRANTED", Toast.LENGTH_LONG).show();
+                    //reload my activity with permission granted or use the features what required the permission
+                } else
+                {
+                    Toast.makeText(this, "The app was not allowed to write to your storage. Hence, it cannot function properly. Please consider granting it this permission", Toast.LENGTH_LONG).show();
+                }
+            }
+        }
+
+    }
+
     @SuppressLint("SimpleDateFormat")
     @Override
     public boolean onTouch(View v, MotionEvent event) {
@@ -364,7 +387,15 @@ public class Tutorial3Activity extends Activity implements CvCameraViewListener2
 
        // mOpenCvCameraView.lockFocus();
 
-//        mOpenCvCameraView.setup();
+        //mOpenCvCameraView.setup();
+        boolean hasPermission = (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED);
+        if (!hasPermission) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    REQUEST_WRITE_STORAGE);
+        }
+
         if(!mCamProjCalib.isCalibrated())
         {
             mButton.setEnabled(true);
