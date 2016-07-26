@@ -130,7 +130,7 @@ public class Tutorial3View extends JavaCameraView implements PictureCallback {
 //        Core.gemm(PM, PCam2tmp, 1, new Mat(), 0, PCam2, 0);
 
 
-        int DotSize = 5;
+        int DotSize = 3;
         org.opencv.core.Size pImageSize=new org.opencv.core.Size(1280,720);
         DispImg = new Mat();
         Mat.zeros(pImageSize, CvType.CV_8UC1).copyTo(DispImg);
@@ -322,6 +322,7 @@ public class Tutorial3View extends JavaCameraView implements PictureCallback {
 
     public void measureFrame(Mat gi, Mat rgbi)
     {
+        Log.i(TAG, "start blobDetector");
         blobDetector.detect(gi, keypoints);
         if(!keypoints.empty()){
             Imgproc.cvtColor(rgbi,rgbi,Imgproc.COLOR_BGRA2BGR);
@@ -342,7 +343,7 @@ public class Tutorial3View extends JavaCameraView implements PictureCallback {
             Point3 dpt = new Point3();
             float xyd1a[] = new float[4];
             int img_cor[] = new int[4];
-            int[][] img_cor_tmp = new int[4][5];
+            int[][] img_cor_tmp = new int[4][6];
             int img_idx;
             int ldm_idx;
             int buf_idx;
@@ -350,26 +351,35 @@ public class Tutorial3View extends JavaCameraView implements PictureCallback {
             for(int i=0;i<4;i++) {
                 img_cor[i]=-1;
             }
-
+            Log.i(TAG, "blobDetector complete with point: Cols:"+ MatPsO.cols()+ " Rows: " + MatPsO.rows());
+            Log.i(TAG, "detect corresponding points on recified space");
             for (Point ptpan : RecProjPoint.toArray()) {
                 img_idx = 0;
                 buf_idx = 0;
+                //Log.i(TAG, "ldm_idx: "+ldm_idx);
                 for (Point ptimg : MatPs.toArray()) {
+                    //Log.i(TAG, "img_idx: "+img_idx);
                     if (Math.abs(ptimg.x - ptpan.x) < THRES_X) {
-                        img_cor_tmp[ldm_idx][buf_idx+1]=img_idx;
-                        if(buf_idx<5) {
-                            buf_idx++;
-                            img_cor_tmp[ldm_idx][0]=buf_idx;
+                         if(buf_idx<5) {
+                             //Log.i(TAG, "buf_idx: "+buf_idx);
+                             img_cor_tmp[ldm_idx][buf_idx+1]=img_idx;
+                             //Log.i(TAG, "buf_idx: "+(buf_idx+1) + " assigned");
+                             buf_idx++;
+                             img_cor_tmp[ldm_idx][0]=buf_idx;
                         }
                         else
                         {
+                           //Log.i(TAG, "buf_idx: "+buf_idx);
+                            Log.i(TAG, "Break!!");
                             break;
                         }
                     }
                     img_idx++;
                 }
+                //Log.i(TAG, "ldm_idx: "+ldm_idx + "completed");
                 ldm_idx++;
             }
+            Log.i(TAG, "refine corresponding points with prior knowledge");
             double MINY=720;
             double MINX=1280;
             double MAXX=0;
@@ -403,7 +413,7 @@ public class Tutorial3View extends JavaCameraView implements PictureCallback {
                     }
                 }
             }
-
+            Log.i(TAG, "calculate the 3D struture based on corresponding points");
             float fs[] = new float[1];
             float sc;
             Mat pc1=new Mat(2,1,CvType.CV_32FC1);
@@ -426,7 +436,7 @@ public class Tutorial3View extends JavaCameraView implements PictureCallback {
                     dpt.y = xyd1a[1] / xyd1a[3];
                     dpt.z = xyd1a[2] / xyd1a[3];
 
-
+                    // triangulation in original space
 //                    fs[0]=(float) (MatPs.toArray()[img_cor[ldm_idx]].x);
 //                    pc1.put(0,0,fs);
 //                    fs[0]=(float) (MatPs.toArray()[img_cor[ldm_idx]].y);
@@ -454,6 +464,7 @@ public class Tutorial3View extends JavaCameraView implements PictureCallback {
                 ldm_idx++;
             }
 
+            Log.i(TAG, "calculate the depth");
             double V, A, D;
             double x1,x2,x3,x4,y1,y2,y3,y4,z1,z2,z3,z4,c1,c2,c3;
             if(DetectedPoints.size()==4) {

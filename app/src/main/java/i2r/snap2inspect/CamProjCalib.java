@@ -128,9 +128,11 @@ public class CamProjCalib {
 
     public void doCalibrate() {
 
+        Log.i(TAG, "Start Calibration");
         for (int i = 0; i < mCornersBuffer.size(); i++) {
             pCornersBuffer.add(pPatternPoints.clone());
         }
+        Log.i(TAG, "Stereo Calibration");
         Calib3d.stereoCalibrate(oCornersBuffer, mCornersBuffer, pCornersBuffer, CM, CK, PM, PK, mImageSize, R, T, E, F, mFlags);
         mIsCalibrated = Core.checkRange(PM) && Core.checkRange(PK);
 //        Log.i(TAG, "CM: " + CM.dump());
@@ -141,8 +143,10 @@ public class CamProjCalib {
 //        Log.i(TAG, "T: " + T.dump());
 //        Log.i(TAG, "T: " + E.dump());
 //        Log.i(TAG, "F: " + F.dump());
+        Log.i(TAG, "Stereo Rectify");
         Calib3d.stereoRectify(CM, CK, PM, PK, mImageSize, R, T, R1, R2, P1, P2, Q);
 
+        Log.i(TAG, "Write result to storage");
         TaFileStorage tfs=new TaFileStorage();
         tfs.create(Environment.getExternalStorageDirectory() + "/PCC.xml");
         //save result for calibration
@@ -175,7 +179,8 @@ public class CamProjCalib {
         Q.convertTo(Q, CvType.CV_32F);
         tfs.writeMat("Q", Q);
         tfs.release();
-
+        Log.i(TAG, "Write result to storage complete!");
+        Log.i(TAG, "Calibration complete!");
         //taFileStorage.writeMat("dfa", homography);
         //taFileStorage.writeMat("dfaf", homography);
         //taFileStorage.release();
@@ -207,7 +212,7 @@ public class CamProjCalib {
         final int cn = 2;
         float positions[] = new float[pCornersSize * cn];
         Point vertex = new Point();
-        int DotSize = 10;
+        int DotSize = 8;
         Mat.zeros(pImageSize, CvType.CV_8UC1).copyTo(pProjImage);
 
         for (int i = 0; i < pPatternSize.height; i++) {

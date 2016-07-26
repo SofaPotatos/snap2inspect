@@ -297,8 +297,9 @@ public class Tutorial3Activity extends Activity implements CvCameraViewListener2
         }
         else
         {
+            Log.i(TAG, "start to measureFrmae");
             mOpenCvCameraView.measureFrame(FrameG, FrameRGBA);
-
+            Log.i(TAG, "measureFrmae Complete");
         }
 
         return mOpenCvCameraView.getFrame(FrameRGBA);
@@ -315,24 +316,46 @@ public class Tutorial3Activity extends Activity implements CvCameraViewListener2
 //            Toast.makeText(this, fileName + " saved", Toast.LENGTH_SHORT).show();
         if(mCamProjCalib.isCalibrated())
         {
-            mCamProjCalib.resetCalibrated();
-            mCamProjCalib.setup(1280, 720, 1280, 720);
+            //mCamProjCalib.resetCalibrated();
+            //mCamProjCalib.setup(1280, 720, 1280, 720);
         }
         else {
             if (mCamProjCalib.getCornersBufferSize() > 2) {
+                Log.i(TAG, "call doCalibration");
                 mCamProjCalib.doCalibrate();
+                Log.i(TAG, "call clearCorners");
                 mCamProjCalib.clearCorners();
+                Log.i(TAG, "call setCalibrated");
                 mCamProjCalib.setCalibrated();
                 Toast.makeText(this, "Camera projector calibration complete!", Toast.LENGTH_SHORT).show();
                 mButton.setEnabled(false);
-
+                Log.i(TAG, "call mOpenCvCameraView.setup()");
                 mOpenCvCameraView.setup();
                 if (mPresentation != null) {
+                    Log.i(TAG, "call  mPresentation.setImageDynamic(mOpenCvCameraView.DispImg)");
                     mPresentation.setImageDynamic(mOpenCvCameraView.DispImg);
                 }
+                Log.i(TAG, "do 6calibration and projection pattern setup completes");
 
-            } else {
-                Toast.makeText(this, "At least 3 captures is needed for calibration", Toast.LENGTH_SHORT).show();
+            }else {
+                if (mCamProjCalib.getCornersBufferSize() == 0)
+                {
+                    Toast.makeText(this, "Load calibration parameters!", Toast.LENGTH_SHORT).show();
+                    Log.i(TAG, "Load calibration parameters");
+                    mCamProjCalib.setCalibrated();
+                    mButton.setEnabled(false);
+
+                    Log.i(TAG, "call mOpenCvCameraView.setup()");
+                    mOpenCvCameraView.setup();
+                    if (mPresentation != null) {
+                        Log.i(TAG, "call  mPresentation.setImageDynamic(mOpenCvCameraView.DispImg)");
+                        mPresentation.setImageDynamic(mOpenCvCameraView.DispImg);
+                    }
+                    Log.i(TAG, "load calibration and projection pattern setup completes");
+                }
+                else {
+                    Toast.makeText(this, "At least 3 captures is needed for calibration", Toast.LENGTH_SHORT).show();
+                }
             }
 
         }
@@ -388,6 +411,7 @@ public class Tutorial3Activity extends Activity implements CvCameraViewListener2
        // mOpenCvCameraView.lockFocus();
 
         //mOpenCvCameraView.setup();
+        Log.i(TAG, "Screen Touched");
         boolean hasPermission = (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED);
         if (!hasPermission) {
