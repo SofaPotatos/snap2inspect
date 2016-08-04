@@ -465,28 +465,48 @@ public class Tutorial3View extends JavaCameraView implements PictureCallback {
             }
 
             Log.i(TAG, "calculate the depth");
-            double V, A, D;
-            double x1,x2,x3,x4,y1,y2,y3,y4,z1,z2,z3,z4,c1,c2,c3;
+            double A, D;
+            double x1,x2,x3,x4,y1,y2,y3,y4,z1,z2,z3,z4,la,lb,lc,ld;
             if(DetectedPoints.size()==4) {
-                x1=DetectedPoints.get(0).x;
-                y1=DetectedPoints.get(0).y;
-                z1=DetectedPoints.get(0).z;
-                x2=DetectedPoints.get(1).x-x1;
-                y2=DetectedPoints.get(1).y-y1;
-                z2=DetectedPoints.get(1).z-z1;
-                x3=DetectedPoints.get(2).x-x1;
-                y3=DetectedPoints.get(2).y-y1;
-                z3=DetectedPoints.get(2).z-z1;
-                x4=DetectedPoints.get(3).x-x1;
-                y4=DetectedPoints.get(3).y-y1;
-                z4=DetectedPoints.get(3).z-z1;
-                c1=y2*z3-z2*y3;
-                c2=z2*x3-x2*z3;
-                c3=x2*y3-y2*x3;
-                V = Math.abs(c1*x4+c2*y4+c3*z4)/6;
-                A = Math.abs(x2*x3+y2*y3+z2*z3)/2;
-                D = 3*V/A;
-                Imgproc.putText(rgbi, "Depth: "+ twoPlaces.format(D) + " Area: " + twoPlaces.format(A) + " Volume: " + twoPlaces.format(V), new Point(rgbi.cols() / 16 * 1, rgbi.rows() * 0.1), Core.FONT_HERSHEY_SIMPLEX, 1.0, new Scalar(255, 0, 0));
+                x2=DetectedPoints.get(0).x;
+                y2=DetectedPoints.get(0).y;
+                z2=DetectedPoints.get(0).z;
+                x3=DetectedPoints.get(1).x;
+                y3=DetectedPoints.get(1).y;
+                z3=DetectedPoints.get(1).z;
+                x4=DetectedPoints.get(2).x;
+                y4=DetectedPoints.get(2).y;
+                z4=DetectedPoints.get(2).z;
+                x1=DetectedPoints.get(3).x;
+                y1=DetectedPoints.get(3).y;
+                z1=DetectedPoints.get(3).z;
+                la = y2 * (z3 - z4) + y3 * (z4 - z2) + y4 * (z2 - z3);
+                lb = z2 * (x3 - x4) + z3 * (x4 - x2) + z4 * (x2 - x3);
+                lc = x2 * (y3 - y4) + x3 * (y4 - y2) + x4 * (y2 - y3);
+                ld = x2 * (y3 * z4 - y4 * z3) + x3 * (y4 * z2 - y2 * z4) + x4 * (y2 * z3 - y3 * z2);
+                A=Math.sqrt(la*la+lb*lb+lc*lc);
+                D=(la*x1+lb*y1+lc*z1-ld)/A;
+                Imgproc.putText(rgbi, "Depth: "+ twoPlaces.format(D) + "mm", new Point(rgbi.cols() / 16 * 1, rgbi.rows() * 0.1), Core.FONT_ITALIC, 2.5, new Scalar(255, 255, 0));
+
+//                x1=DetectedPoints.get(0).x;
+//                y1=DetectedPoints.get(0).y;
+//                z1=DetectedPoints.get(0).z;
+//                x2=DetectedPoints.get(1).x-x1;
+//                y2=DetectedPoints.get(1).y-y1;
+//                z2=DetectedPoints.get(1).z-z1;
+//                x3=DetectedPoints.get(2).x-x1;
+//                y3=DetectedPoints.get(2).y-y1;
+//                z3=DetectedPoints.get(2).z-z1;
+//                x4=DetectedPoints.get(3).x-x1;
+//                y4=DetectedPoints.get(3).y-y1;
+//                z4=DetectedPoints.get(3).z-z1;
+//                c1=y2*z3-z2*y3;
+//                c2=z2*x3-x2*z3;
+//                c3=x2*y3-y2*x3;
+//                V = Math.abs(c1*x4+c2*y4+c3*z4)/6;
+//                A = Math.abs(x2*x3+y2*y3+z2*z3)/2;
+//                D = 3*V/A;
+//                Imgproc.putText(rgbi, "Depth: "+ twoPlaces.format(D) + " Area: " + twoPlaces.format(A) + " Volume: " + twoPlaces.format(V), new Point(rgbi.cols() / 16 * 1, rgbi.rows() * 0.1), Core.FONT_HERSHEY_SIMPLEX, 1.0, new Scalar(255, 0, 0));
             }
             DetectedPoints.clear();
         }

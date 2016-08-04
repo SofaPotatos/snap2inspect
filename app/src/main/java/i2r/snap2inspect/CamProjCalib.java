@@ -78,15 +78,18 @@ public class CamProjCalib {
         F=new Mat();
         mImageSize = new Size(mwidth, mheight);
         pImageSize = new Size(pwidth, pheight);
+//        mFlags =Calib3d.CALIB_FIX_PRINCIPAL_POINT +
+//                Calib3d.CALIB_FIX_ASPECT_RATIO +
+//                Calib3d.CALIB_ZERO_TANGENT_DIST +
+//                Calib3d.CALIB_FIX_INTRINSIC;
         mFlags =Calib3d.CALIB_FIX_PRINCIPAL_POINT +
                 Calib3d.CALIB_FIX_ASPECT_RATIO +
                 Calib3d.CALIB_ZERO_TANGENT_DIST +
-                Calib3d.CALIB_FIX_INTRINSIC;
-//                Calib3d.CALIB_FIX_K1 +
-//                Calib3d.CALIB_FIX_K2 +
-//                Calib3d.CALIB_FIX_K3 +
-//                Calib3d.CALIB_FIX_K4 +
-//                Calib3d.CALIB_FIX_K5;
+                Calib3d.CALIB_FIX_K1 +
+                Calib3d.CALIB_FIX_K2 +
+                Calib3d.CALIB_FIX_K3 +
+                Calib3d.CALIB_FIX_K4 +
+                Calib3d.CALIB_FIX_K5;
         CM = new Mat();
         Mat.eye(3, 3, CvType.CV_64FC1).copyTo(CM);
         PM = new Mat();
@@ -95,7 +98,7 @@ public class CamProjCalib {
         CM.put(1, 1, 780.9);//CM.put(1, 1, 820);
         CM.put(0, 2, 639.5);
         CM.put(1, 2, 359.5);
-        PM.put(0, 0, 1758);
+        PM.put(0, 0, 1758); //1642
         PM.put(1,1,1758);
         PM.put(0,2,639.5);
         PM.put(1,2,359.5);
