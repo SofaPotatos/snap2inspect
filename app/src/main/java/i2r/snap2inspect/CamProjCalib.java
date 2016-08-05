@@ -78,10 +78,6 @@ public class CamProjCalib {
         F=new Mat();
         mImageSize = new Size(mwidth, mheight);
         pImageSize = new Size(pwidth, pheight);
-//        mFlags =Calib3d.CALIB_FIX_PRINCIPAL_POINT +
-//                Calib3d.CALIB_FIX_ASPECT_RATIO +
-//                Calib3d.CALIB_ZERO_TANGENT_DIST +
-//                Calib3d.CALIB_FIX_INTRINSIC;
         mFlags =Calib3d.CALIB_FIX_PRINCIPAL_POINT +
                 Calib3d.CALIB_FIX_ASPECT_RATIO +
                 Calib3d.CALIB_ZERO_TANGENT_DIST +
@@ -138,14 +134,6 @@ public class CamProjCalib {
         Log.i(TAG, "Stereo Calibration");
         Calib3d.stereoCalibrate(oCornersBuffer, mCornersBuffer, pCornersBuffer, CM, CK, PM, PK, mImageSize, R, T, E, F, mFlags);
         mIsCalibrated = Core.checkRange(PM) && Core.checkRange(PK);
-//        Log.i(TAG, "CM: " + CM.dump());
-//        Log.i(TAG, "CK: " + CK.dump());
-//        Log.i(TAG, "PM: " + PM.dump());
-//        Log.i(TAG, "PK: " + PK.dump());
-//        Log.i(TAG, "R: " + R.dump());
-//        Log.i(TAG, "T: " + T.dump());
-//        Log.i(TAG, "T: " + E.dump());
-//        Log.i(TAG, "F: " + F.dump());
         Log.i(TAG, "Stereo Rectify");
         Calib3d.stereoRectify(CM, CK, PM, PK, mImageSize, R, T, R1, R2, P1, P2, Q);
 
@@ -184,10 +172,6 @@ public class CamProjCalib {
         tfs.release();
         Log.i(TAG, "Write result to storage complete!");
         Log.i(TAG, "Calibration complete!");
-        //taFileStorage.writeMat("dfa", homography);
-        //taFileStorage.writeMat("dfaf", homography);
-        //taFileStorage.release();
-
     }
 
     public void clearCorners() {

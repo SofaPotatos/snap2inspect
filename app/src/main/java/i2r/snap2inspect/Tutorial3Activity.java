@@ -58,6 +58,7 @@ public class Tutorial3Activity extends Activity implements CvCameraViewListener2
     private Mat FrameRGBA;
     private boolean init_stat=false;
     private boolean calib_stat=false;
+    private boolean measure_stat=false;
     private static final int REQUEST_WRITE_STORAGE = 112;
 
     @Override
@@ -65,12 +66,11 @@ public class Tutorial3Activity extends Activity implements CvCameraViewListener2
         if (mPresentation != null) {
             Toast.makeText(this, "Monitored switch is " + (isChecked ? "on" : "off"),
                     Toast.LENGTH_SHORT).show();
-
-            if (isChecked) {
-                mPresentation.setImage2();
-            } else {
-                mPresentation.setImageDynamic(mCamProjCalib.pProjImage);
-            }
+//            if (isChecked) {
+//                mPresentation.setImageDynamic(mOpenCvCameraView.DispImg);
+//            } else {
+//                mPresentation.setImageDynamic(mCamProjCalib.pProjImage);
+//            }
         }
         else
         {
@@ -300,6 +300,18 @@ public class Tutorial3Activity extends Activity implements CvCameraViewListener2
             Log.i(TAG, "start to measureFrmae");
             mOpenCvCameraView.measureFrame(FrameG, FrameRGBA);
             Log.i(TAG, "measureFrmae Complete");
+
+            if(measure_stat) {
+                measure_stat=false;
+                Log.i(TAG, "save measurement start");
+                Log.i(TAG, "set flags to disable save measurement");
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
+                String currentDateandTime = sdf.format(new Date());
+                String fileName = Environment.getExternalStorageDirectory().getPath() + "/S2I_Data/measurement_" + currentDateandTime + ".jpg";
+                Imgcodecs.imwrite(fileName, FrameRGBA);
+                Log.i(TAG, "save measurement complete");
+
+            }
         }
 
         return mOpenCvCameraView.getFrame(FrameRGBA);
@@ -308,12 +320,6 @@ public class Tutorial3Activity extends Activity implements CvCameraViewListener2
     }
 
     private void takeMeasurement() {
-//            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
-//            String currentDateandTime = sdf.format(new Date());
-//            String fileName = Environment.getExternalStorageDirectory().getPath() +
-//                    "/sample_picture_" + currentDateandTime + ".jpg";
-//            mOpenCvCameraView.takePicture(fileName);
-//            Toast.makeText(this, fileName + " saved", Toast.LENGTH_SHORT).show();
         if(mCamProjCalib.isCalibrated())
         {
             //mCamProjCalib.resetCalibrated();
@@ -344,7 +350,6 @@ public class Tutorial3Activity extends Activity implements CvCameraViewListener2
                     Log.i(TAG, "Load calibration parameters");
                     mCamProjCalib.setCalibrated();
                     mButton.setEnabled(false);
-
                     Log.i(TAG, "call mOpenCvCameraView.setup()");
                     mOpenCvCameraView.setup();
                     if (mPresentation != null) {
@@ -384,34 +389,7 @@ public class Tutorial3Activity extends Activity implements CvCameraViewListener2
     @SuppressLint("SimpleDateFormat")
     @Override
     public boolean onTouch(View v, MotionEvent event) {
-        //Log.i(TAG, "onTouch event");
-
-//        mCamProjCalib.setCalibrated();
-//        Toast.makeText(this, "Camera projector calibration complete!", Toast.LENGTH_SHORT).show();
-//
-//        mOpenCvCameraView.setup();
-//        if (mPresentation != null) {
-//            mPresentation.setImageDynamic(mOpenCvCameraView.DispImg);
-//        }
-
-//        float focus_distance_manual = 0.0f;
-//        CaptureRequest.Builder builder;
-//        builder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_IDLE);
-//        builder.set(CaptureRequest.LENS_FOCUS_DISTANCE, focus_distance_manual);
-//        Activity activity = getActivity();
-//
-//        CameraManager manager = (CameraManager) activity.getSystemService(Context.CAMERA_SERVICE);
-//
-//        CameraDevice mCameraDevice;
-//
-//        CaptureRequest.Builder  mPreviewRequestBuilder;
-//        mPreviewRequestBuilder
-//                = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
-
-       // mOpenCvCameraView.lockFocus();
-
-        //mOpenCvCameraView.setup();
-        Log.i(TAG, "Screen Touched");
+        Log.i(TAG, "onTouch event");
         boolean hasPermission = (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED);
         if (!hasPermission) {
@@ -432,45 +410,12 @@ public class Tutorial3Activity extends Activity implements CvCameraViewListener2
                 Toast.makeText(this, "Adding capture failed!", Toast.LENGTH_SHORT).show();
             }
         }
-
-//        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
-//        String currentDateandTime = sdf.format(new Date());
-//        String fileName = Environment.getExternalStorageDirectory().getPath() + "/chessboard_picture_" + currentDateandTime + ".jpg";
-//        Imgcodecs.imwrite(fileName, FrameRGBA);
-//        Toast.makeText(this, "Image added!!!!!!", Toast.LENGTH_SHORT).show();
-
-//        if (mPresentation != null) {
-//            mPresentation.setImageDynamic(lastFrame);
-//        }
-
-       //Toast.makeText(this, "disable touch view", Toast.LENGTH_SHORT).show();
-
-/*        taFileStorage.create(root+ "/mats");
-        int[][] intArray = new int[][]{{2,3,4},{5,6,7},{8,9,10}};
-        Mat matObject = new Mat(3,3,CvType.CV_8UC1);
-        for(int row=0;row<3;row++){
-            for(int col=0;col<3;col++)
-                matObject.put(row, col, intArray[row][col]);
+        else
+        {
+            Log.i(TAG, "set flags to save measurement");
+            measure_stat=true;
+            Toast.makeText(this, "Measurement saved!", Toast.LENGTH_SHORT).show();
         }
-        taFileStorage.writeMat("demom", matObject);
-        taFileStorage.release();*/
-
-//        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
-//        String currentDateandTime = sdf.format(new Date());
-//        String fileName = Environment.getExternalStorageDirectory().getPath() +
-//                "/sample_picture_" + currentDateandTime + ".jpg";
-//        mOpenCvCameraView.takePicture(fileName);
-
-
-        //imageView.setImageResource(R.drawable.chessboard);
-        //
-        //taFileStorage.create(root + "/mats2");
-        //taFileStorage.writeMat("dfa", homography);
-        //taFileStorage.writeMat("dfaf", homography);
-        //taFileStorage.release();
-
-
-        //Toast.makeText(this, "Don't touch", Toast.LENGTH_SHORT).show();
         return false;
     }
 

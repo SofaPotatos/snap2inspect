@@ -42,8 +42,8 @@ public class Tutorial3View extends JavaCameraView implements PictureCallback {
     Mat Q;
     Mat P1;
     Mat P2;
-    Mat PCam1;
-    Mat PCam2;
+    //Mat PCam1;
+    //Mat PCam2;
     Mat R1;
     Mat R2;
     Mat PM;
@@ -107,29 +107,6 @@ public class Tutorial3View extends JavaCameraView implements PictureCallback {
         E = taFileStorage.readMat("E");
         taFileStorage.release();
 
-//        float fs[] = new float[1];
-//        Mat PCam1tmp= new Mat();
-//        PCam1 = new Mat();
-//        Mat.zeros(3, 4, CvType.CV_32FC1).copyTo(PCam1tmp);
-//        Mat PCam2tmp= new Mat();
-//        PCam2 = new Mat();
-//        Mat.zeros(3, 4, CvType.CV_32FC1).copyTo(PCam2tmp);
-//        fs[0]=1;
-//        PCam1tmp.put(0,0,fs);
-//        PCam1tmp.put(1,1,fs);
-//        PCam1tmp.put(2,2,fs);
-//        for(int i=0;i<3;i++) {
-//            for (int j = 0; j < 3; j++) {
-//                R.get(i, j, fs);
-//                PCam2tmp.put(i, j, fs);
-//            }
-//            T.get(i, 0, fs);
-//            PCam2tmp.put(i, 3, fs);
-//        }
-//        Core.gemm(CM, PCam1tmp, 1, new Mat(), 0, PCam1, 0);
-//        Core.gemm(PM, PCam2tmp, 1, new Mat(), 0, PCam2, 0);
-
-
         int DotSize = 3;
         org.opencv.core.Size pImageSize=new org.opencv.core.Size(1280,720);
         DispImg = new Mat();
@@ -159,27 +136,7 @@ public class Tutorial3View extends JavaCameraView implements PictureCallback {
         ProjPoint.fromList(ptmp);
         RecProjPoint = new MatOfPoint2f();
         Imgproc.undistortPoints(ProjPoint, RecProjPoint, PM, PK, R2, P2);
-        //origin
 
-// testing
-
-//        //        Calib3d.projectPoints();
-//        Mat mapx=new Mat();
-//        Mat mapy=new Mat();
-//        //Calib3d.projectPoints();
-//        Calib3d.initUndistortRectifyMap(PM, PK, R2, P2, pImageSize, CvType.CV_32FC1, mapx, mapy);
-//
-//        Point markc_p = new Point(640,450);
-//        List<org.opencv.core.Point> ptmp=new ArrayList<Point>();
-//        ptmp.add(markc_p);
-//        ProjPoint = new MatOfPoint2f();
-//        ProjPoint.fromList(ptmp);
-//        RecProjPoint = new MatOfPoint2f();
-//        Imgproc.undistortPoints(ProjPoint, RecProjPoint, PM, PK, R2, P2);
-//        RecProjPoint.toArray()[0].x;
-
-
-//testing end
         Imgproc.circle(DispImg, markp1, DotSize, new Scalar(255, 0, 0), -1);
         Imgproc.circle(DispImg, markp2, DotSize, new Scalar(255, 0, 0), -1);
         Imgproc.circle(DispImg, markp3, DotSize, new Scalar(255, 0, 0), -1);
@@ -188,137 +145,6 @@ public class Tutorial3View extends JavaCameraView implements PictureCallback {
 
     public boolean isBusy() {return p_status;}
 
-
-
-//    public void measureFrame(Mat gi, Mat rgbi)
-//    {
-//        //Imgproc.cvtColor(rgbi, irgb, Imgproc.COLOR_BGR2GRAY);
-//        blobDetector.detect(gi, keypoints);
-//        if(!keypoints.empty()){
-//            Imgproc.cvtColor(rgbi,rgbi,Imgproc.COLOR_BGRA2BGR);
-//            Features2d.drawKeypoints(rgbi, keypoints, rgbi);
-////        KeyPoint[] kpa;
-////        kpa=keypoints.toArray();
-////        List<Point> pint=new ArrayList<Point>();
-////        for(int i=0;i<kpa.length;i++){
-////            pint.add(kpa[i].pt);
-////        }
-////        MatOfPoint2f kpc_in = new MatOfPoint2f();
-//            MatOfPoint2f MatPsO=MatOfKeyPoint2MatOfPoint(keypoints);
-//
-//            MatOfPoint2f MatPs=new MatOfPoint2f();
-//        //kpc_in.fromList(pint);
-//            Imgproc.undistortPoints(MatPsO, MatPs, CM, CK, R1, P1);
-//
-////        TaFileStorage taFileStorage=new TaFileStorage();
-////        String root = Environment.getExternalStorageDirectory() +"";
-////        taFileStorage.create(root + "/result_pts.xml");
-////        Mat OutMat=new Mat();
-////        MatPs.copyTo(OutMat);
-////        OutMat.convertTo(OutMat, CvType.CV_32F);
-////        Log.i(TAG, "ImgPt " + OutMat);
-////        taFileStorage.writeMat("ImgPt", OutMat);
-////        RecProjPoint.copyTo(OutMat);
-////        OutMat.convertTo(OutMat, CvType.CV_32F);
-////        taFileStorage.writeMat("ProjPt",OutMat);
-////        taFileStorage.release();
-//
-//            for(Point ptpan : RecProjPoint.toArray())
-//            {
-//                ptpan.x=ptpan.x;
-//                Imgproc.circle(rgbi, ptpan, 5, new Scalar(0, 0, 255), 2);
-//            }
-//            DecimalFormat twoPlaces = new DecimalFormat("0.0");
-//            Mat xyd1 = new Mat(4, 1, CvType.CV_32F);
-//            Mat NullM = new Mat();
-//            Mat.zeros(3, 1, CvType.CV_32F).copyTo(NullM);
-//            Point3 dpt = new Point3();
-//            float xyd1a[] = new float[4];
-//            int img_idx;
-//            for (Point ptpan : RecProjPoint.toArray()) {
-//                img_idx=0;
-//                for (Point ptimg : MatPs.toArray()) {
-//                    Imgproc.circle(rgbi, ptimg, 5, new Scalar(0, 255, 0), 2);
-//                    if (Math.abs(ptimg.x - ptpan.x) < THRES_X) {
-//                        xyd1a[0] = (float) ptimg.x;
-//                        xyd1a[1] = (float) ptimg.y;
-//                        xyd1a[2] = (float) (ptimg.y - ptpan.y);
-//                        xyd1a[3] = 1;
-//                        xyd1.put(0, 0, xyd1a);
-//                        Core.gemm(Q, xyd1, 1, NullM, 0, xyd1, 0);
-//                        xyd1.get(0, 0, xyd1a);
-//
-//                        dpt.x = xyd1a[0] / xyd1a[3];
-//                        dpt.y = xyd1a[1] / xyd1a[3];
-//                        dpt.z = xyd1a[2] / xyd1a[3];
-//                        DetectedPoints.add(dpt.clone());
-//                        Imgproc.putText(rgbi, "(" + twoPlaces.format(dpt.x) + ", " + twoPlaces.format(dpt.y) + ", " + twoPlaces.format(dpt.z) + ")", MatPsO.toArray()[img_idx],
-//                                Core.FONT_HERSHEY_SIMPLEX, 1.0, new Scalar(255, 0, 0));
-//                        //break
-//                        Imgproc.line(rgbi, MatPsO.toArray()[img_idx], ptpan,new Scalar(255, 0, 0), 1);
-//                        Imgproc.circle(rgbi,  MatPsO.toArray()[img_idx], 5, new Scalar(255, 0, 0), 2);
-//                        break;
-//                    }
-//                    img_idx++;
-//                }
-//
-//            }
-//            double V, A, D;
-//            double x1,x2,x3,x4,y1,y2,y3,y4,z1,z2,z3,z4,c1,c2,c3;
-//            if(DetectedPoints.size()==4) {
-//                x1=DetectedPoints.get(0).x;
-//                y1=DetectedPoints.get(0).y;
-//                z1=DetectedPoints.get(0).z;
-//                x2=DetectedPoints.get(1).x-x1;
-//                y2=DetectedPoints.get(1).y-y1;
-//                z2=DetectedPoints.get(1).z-z1;
-//                x3=DetectedPoints.get(2).x-x1;
-//                y3=DetectedPoints.get(2).y-y1;
-//                z3=DetectedPoints.get(2).z-z1;
-//                x4=DetectedPoints.get(3).x-x1;
-//                y4=DetectedPoints.get(3).y-y1;
-//                z4=DetectedPoints.get(3).z-z1;
-//                c1=y2*z3-z2*y3;
-//                c2=z2*x3-x2*z3;
-//                c3=x2*y3-y2*x3;
-//                V = Math.abs(c1*x4+c2*y4+c3*z4)/6;
-//                A = Math.abs(x2*x3+y2*y3+z2*z3)/2;
-//                D = 3*V/A;
-//                //Imgproc.putText(rgbi, twoPlaces.format(x2) + " " + twoPlaces.format(y2) + " " + twoPlaces.format(z2) + " " + twoPlaces.format(x3) + " " + twoPlaces.format(y3) + " " + twoPlaces.format(z3), new Point(rgbi.cols() / 5 * 1, rgbi.rows() * 0.3), Core.FONT_HERSHEY_SIMPLEX, 1.0, new Scalar(255, 0, 0));
-//                Imgproc.putText(rgbi, "Depth: "+ twoPlaces.format(D) + " Area: " + twoPlaces.format(A) + " Volume: " + twoPlaces.format(V), new Point(rgbi.cols() / 8 * 1, rgbi.rows() * 0.1), Core.FONT_HERSHEY_SIMPLEX, 1.0, new Scalar(255, 0, 0));
-//            }
-//            DetectedPoints.clear();
-//
-//
-////            int img_idx=0;
-////            for (Point ptimg : MatPs.toArray()) {
-////                Imgproc.circle(rgbi, ptimg, 5, new Scalar(0, 255, 0), 2);
-////                for (Point ptpan : RecProjPoint.toArray()) {
-////                        if (Math.abs(ptimg.x - ptpan.x) < THRES_X) {
-////                        xyd1a[0] = (float) ptimg.x;
-////                        xyd1a[1] = (float) ptimg.y;
-////                        xyd1a[2] = (float) (ptimg.y - ptpan.y);
-////                        xyd1a[3] = 1;
-////                        xyd1.put(0, 0, xyd1a);
-////                        Core.gemm(Q, xyd1, 1, NullM, 0, xyd1, 0);
-////                        xyd1.get(0, 0, xyd1a);
-////                        dpt.x = xyd1a[0] / xyd1a[3];
-////                        dpt.y = xyd1a[1] / xyd1a[3];
-////                        dpt.z = xyd1a[2] / xyd1a[3];
-////                        //DetectedPoints.add(dpt);
-////                        Imgproc.putText(rgbi, "(" + twoPlaces.format(dpt.x) + ", " + twoPlaces.format(dpt.y) + ", " + twoPlaces.format(dpt.z) + ")", MatPsO.toArray()[img_idx],
-////                                Core.FONT_HERSHEY_SIMPLEX, 1.0, new Scalar(255, 0, 0));
-////                        //break
-////                        Imgproc.circle(rgbi,  MatPsO.toArray()[img_idx], 5, new Scalar(255, 0, 0), 2);
-////                    }
-////
-////                }
-////                img_idx++;
-////            }
-//        }
-//
-//
-//    }
 
     public void measureFrame(Mat gi, Mat rgbi)
     {
@@ -421,9 +247,7 @@ public class Tutorial3View extends JavaCameraView implements PictureCallback {
             Mat p4=new Mat();
             ldm_idx=0;
             for(Point ptpan : RecProjPoint.toArray()) {
-//            for(Point ptpan : ProjPoint.toArray()) {
                 if(img_cor[ldm_idx]!=-1) {
-
                     // triangulation in rectified space
                     xyd1a[0] = (float) MatPs.toArray()[img_cor[ldm_idx]].x;
                     xyd1a[1] = (float) MatPs.toArray()[img_cor[ldm_idx]].y;
@@ -435,25 +259,6 @@ public class Tutorial3View extends JavaCameraView implements PictureCallback {
                     dpt.x = xyd1a[0] / xyd1a[3];
                     dpt.y = xyd1a[1] / xyd1a[3];
                     dpt.z = xyd1a[2] / xyd1a[3];
-
-                    // triangulation in original space
-//                    fs[0]=(float) (MatPs.toArray()[img_cor[ldm_idx]].x);
-//                    pc1.put(0,0,fs);
-//                    fs[0]=(float) (MatPs.toArray()[img_cor[ldm_idx]].y);
-//                    pc1.put(1,0,fs);
-//                    fs[0]=(float) (ptpan.x);
-//                    pc2.put(0,0,fs);
-//                    fs[0]=(float) (ptpan.y);
-//                    pc2.put(1,0,fs);
-//                    Calib3d.triangulatePoints(PCam1,PCam2,pc1, pc2, p4);
-//                    p4.get(3,0,fs);
-//                    sc=fs[0];
-//                    p4.get(0,0,fs);
-//                    dpt.x=fs[0]/sc;
-//                    p4.get(1,0,fs);
-//                    dpt.y=fs[0]/sc;
-//                    p4.get(2,0,fs);
-//                    dpt.z=fs[0]/sc;
 
                     DetectedPoints.add(dpt.clone());
                     Imgproc.putText(rgbi, "(" + twoPlaces.format(dpt.x) + ", " + twoPlaces.format(dpt.y) + ", " + twoPlaces.format(dpt.z) + ")", ProjPoint.toArray()[ldm_idx],
@@ -487,26 +292,6 @@ public class Tutorial3View extends JavaCameraView implements PictureCallback {
                 A=Math.sqrt(la*la+lb*lb+lc*lc);
                 D=(la*x1+lb*y1+lc*z1-ld)/A;
                 Imgproc.putText(rgbi, "Depth: "+ twoPlaces.format(D) + "mm", new Point(rgbi.cols() / 16 * 1, rgbi.rows() * 0.1), Core.FONT_ITALIC, 2.5, new Scalar(255, 255, 0));
-
-//                x1=DetectedPoints.get(0).x;
-//                y1=DetectedPoints.get(0).y;
-//                z1=DetectedPoints.get(0).z;
-//                x2=DetectedPoints.get(1).x-x1;
-//                y2=DetectedPoints.get(1).y-y1;
-//                z2=DetectedPoints.get(1).z-z1;
-//                x3=DetectedPoints.get(2).x-x1;
-//                y3=DetectedPoints.get(2).y-y1;
-//                z3=DetectedPoints.get(2).z-z1;
-//                x4=DetectedPoints.get(3).x-x1;
-//                y4=DetectedPoints.get(3).y-y1;
-//                z4=DetectedPoints.get(3).z-z1;
-//                c1=y2*z3-z2*y3;
-//                c2=z2*x3-x2*z3;
-//                c3=x2*y3-y2*x3;
-//                V = Math.abs(c1*x4+c2*y4+c3*z4)/6;
-//                A = Math.abs(x2*x3+y2*y3+z2*z3)/2;
-//                D = 3*V/A;
-//                Imgproc.putText(rgbi, "Depth: "+ twoPlaces.format(D) + " Area: " + twoPlaces.format(A) + " Volume: " + twoPlaces.format(V), new Point(rgbi.cols() / 16 * 1, rgbi.rows() * 0.1), Core.FONT_HERSHEY_SIMPLEX, 1.0, new Scalar(255, 0, 0));
             }
             DetectedPoints.clear();
         }

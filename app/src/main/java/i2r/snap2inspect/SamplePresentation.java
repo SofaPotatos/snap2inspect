@@ -49,11 +49,6 @@ public class SamplePresentation extends Presentation {
 
     private LinearLayout mLayout;
     private ImageView mImageView;
-    private Mat mat_cb_disp; // mat of chessboard
-    private Mat mat_4pt_disp; // mat of markers with 4 points
-    private boolean init;
-    private int icols=1280;
-    private int irows=720;
     public SamplePresentation(Context outerContext, Display display) {
         super(outerContext, display);
     }
@@ -68,64 +63,9 @@ public class SamplePresentation extends Presentation {
         // Get the Views
         mLayout = (LinearLayout) findViewById(R.id.display_layout);
         mImageView = (ImageView) findViewById(R.id.imageView1);
-        init = true;
-
-
-    }
-
-
-    public void setImage1() {
-//        mLayout.setBackgroundColor(0);
-        //mText.setText("Marker Image Set");
-//        mImageView.setImageResource(R.drawable.marker4);
-        Point vertex = new Point();
-        if(init) {
-            Mat mat_cb = new Mat(irows, icols, CvType.CV_8UC1);
-            for (int ic = 0; ic < 8; ic++) {
-                for (int ir = 0; ir < 6; ir++) {
-                    vertex.x=300+ic*80;
-                    vertex.y=250+ir*80;
-                    Imgproc.circle(mat_cb, vertex, 10, new Scalar(255, 0, 0), -1);
-                }
-            }
-            mat_cb_disp = new Mat(irows, icols, CvType.CV_8UC3);
-            mLayout.setBackgroundColor(0);
-            //mText.setText("Marker Image Set");
-            Imgproc.cvtColor(mat_cb, mat_cb_disp, Imgproc.COLOR_GRAY2RGB);
-            init=false;
-        }
-        this.setImageDynamic(mat_cb_disp);
-        mLayout.setBackgroundColor(0);
-
-    }
-
-    public void setImage2() {
-
-//        if(init) {
-//            Mat mat_cb = new Mat(irows, icols, CvType.CV_8UC1);
-//            for (int ic = 0; ic < icols; ic++) {
-//                for (int ir = 0; ir < irows; ir++) {
-//                    if ((ic % 80) == 0 && (ir % 80) == 0) {
-//                        mat_cb.put(ir, ic, 255);
-//                    } else {
-//                        mat_cb.put(ir, ic, 0);
-//                    }
-//                }
-//            }
-//            mat_cb_disp = new Mat(irows, icols, CvType.CV_8UC3);
-//            mLayout.setBackgroundColor(0);
-//            //mText.setText("Marker Image Set");
-//            Imgproc.cvtColor(mat_cb, mat_cb_disp, Imgproc.COLOR_GRAY2RGB);
-//            init=false;
-//        }
-//        this.setImageDynamic(mat_cb_disp);
-        //mImageView.setImageResource(R.drawable.chessboard);
-        mImageView.setImageResource(R.drawable.marker4);
     }
 
     public void setImageDynamic(Mat m) {
-        //mLayout.setBackgroundColor(0);
-        //mText.setText("Marker Image Set");
         // convert to bitmap:
         Bitmap bm = Bitmap.createBitmap(m.cols(), m.rows(),Bitmap.Config.ARGB_8888);
         Utils.matToBitmap(m, bm);
